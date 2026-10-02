@@ -35,10 +35,19 @@ run_check "Revideo Studio HTML" "${BASE_URL}/app/" "200"
 
 # 2. DesignCombo
 run_check "DesignCombo HTML" "${BASE_URL}/designcombo/" "200"
+run_check "DesignCombo Local Font (CORS Free)" "${BASE_URL}/designcombo/fonts/Geist-SemiBold.ttf" "200"
+run_check "DesignCombo Main JS Bundle" "${BASE_URL}/designcombo/assets/index-DgiDwebz.js" "200"
 
 # 3. Langflow
-run_check "Langflow HTML" "${BASE_URL}/langflow/" "200"
-run_check "Langflow Health API" "${BASE_URL}/langflow/health" "200"
+run_check "Langflow HTML (Base Href /langflow/)" "${BASE_URL}/langflow/" "200"
+run_check "Langflow Main JS Bundle" "${BASE_URL}/langflow/assets/index-9iWkL_FQ.js" "200"
+run_check "Langflow CSS Bundle" "${BASE_URL}/langflow/assets/index-Cd8HCiSu.css" "200"
+run_check "Langflow Manifest" "${BASE_URL}/langflow/manifest.json" "200"
+run_check "Langflow Health API" "${BASE_URL}/health_check" "200"
+run_check "Langflow Version API" "${BASE_URL}/api/v1/version" "200"
+run_check "Langflow Auto-Login API" "${BASE_URL}/api/v1/auto_login" "200"
+run_check "Langflow Session API" "${BASE_URL}/api/v1/session" "200"
+run_check "Langflow Starter Flows API" "${BASE_URL}/api/v1/flows/basic_examples/" "200"
 
 # 4. ComfyUI
 run_check "ComfyUI HTML" "${BASE_URL}/comfyui/" "200"

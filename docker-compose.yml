@@ -70,8 +70,9 @@ services:
       - minio
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.django.rule=PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/events`) || Path(`/`)"
+      - "traefik.http.routers.django.rule=PathPrefix(`/api/auth`) || PathPrefix(`/api/s3`) || PathPrefix(`/api/videos`) || PathPrefix(`/api/workflows`) || PathPrefix(`/api/inngest`) || PathPrefix(`/admin`) || PathPrefix(`/events`) || Path(`/`)"
       - "traefik.http.routers.django.entrypoints=web"
+      - "traefik.http.routers.django.priority=50"
       - "traefik.http.services.django.loadbalancer.server.port=8000"
     networks:
       - saas-net
@@ -136,11 +137,18 @@ services:
       - LANGFLOW_AUTO_LOGIN=true
       - LANGFLOW_SUPERUSER=admin
       - LANGFLOW_SUPERUSER_PASSWORD=AdminPass2026!
+    volumes:
+      - ./langflow/index.html:/app/.venv/lib/python3.14/site-packages/langflow/frontend/index.html:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.langflow.rule=PathPrefix(`/langflow`)"
       - "traefik.http.routers.langflow.entrypoints=web"
+      - "traefik.http.routers.langflow.priority=200"
       - "traefik.http.services.langflow.loadbalancer.server.port=7860"
+      - "traefik.http.routers.langflow-api.rule=PathPrefix(`/api/v1`) || PathPrefix(`/api/v2`) || PathPrefix(`/health_check`) || PathPrefix(`/healthz`) || PathPrefix(`/logs-stream`)"
+      - "traefik.http.routers.langflow-api.entrypoints=web"
+      - "traefik.http.routers.langflow-api.priority=200"
+      - "traefik.http.routers.langflow-api.service=langflow"
     networks:
       - saas-net
 
