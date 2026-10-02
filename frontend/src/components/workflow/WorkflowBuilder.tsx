@@ -14,7 +14,8 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { customNodeTypes } from './CustomNodes';
+import { nodeTypes } from './CustomNodes';
+import { ALL_NODES, CATEGORIES, NodeCategory, NodeDefinition } from './nodeCatalog';
 import { TimelineClip, ProjectSettings } from '../../types';
 import {
   Play,
@@ -32,6 +33,13 @@ import {
   Mic,
   Film,
   FileVideo,
+  Search,
+  Filter,
+  LayoutTemplate,
+  Terminal,
+  BookOpen,
+  Share2,
+  Database,
 } from 'lucide-react';
 
 interface WorkflowBuilderProps {
@@ -39,104 +47,188 @@ interface WorkflowBuilderProps {
   onSwitchToStudio: () => void;
 }
 
-// Initial default pipeline template (End-to-End AI Video Generation)
-const initialNodes: Node[] = [
-  {
-    id: 'node-trigger',
-    type: 'triggerNode',
-    position: { x: 380, y: 30 },
-    data: {
-      label: '1. فكرة الفيديو والمدخلات',
-      prompt: '🔥 أقوى عروض الموسم تخفيض 50% على جميع المنتجات لفترة محدودة',
-      duration: 6,
-      bgColor: '#080a0f',
-      status: 'IDLE',
+// Pre-built Template 1: End-to-End AI Video Generation
+const templateVideoFlow: { nodes: Node[]; edges: Edge[] } = {
+  nodes: [
+    {
+      id: 'node-trigger',
+      type: 'triggerNode',
+      position: { x: 380, y: 30 },
+      data: {
+        label: '1. فكرة الفيديو والمدخلات',
+        prompt: '🔥 أقوى عروض الموسم تخفيض 50% على جميع المنتجات لفترة محدودة',
+        duration: 5,
+        bgColor: '#080a0f',
+        status: 'IDLE',
+      },
     },
-  },
-  {
-    id: 'node-llm',
-    type: 'llmAgentNode',
-    position: { x: 380, y: 250 },
-    data: {
-      label: '2. وكيل الذكاء الاصطناعي (LangGraph)',
-      model: 'gemini-1.5-flash',
-      status: 'IDLE',
+    {
+      id: 'node-llm',
+      type: 'llmAgentNode',
+      position: { x: 380, y: 240 },
+      data: {
+        label: '2. وكيل السكريبت (Gemini)',
+        model: 'gemini-1.5-flash',
+        status: 'IDLE',
+      },
     },
-  },
-  {
-    id: 'node-tts',
-    type: 'ttsVoiceNode',
-    position: { x: 140, y: 470 },
-    data: {
-      label: '3. محرك الصوتيات (Voiceover)',
-      voiceStyle: 'حماسي إعلاني',
-      status: 'IDLE',
+    {
+      id: 'node-tts',
+      type: 'ttsVoiceNode',
+      position: { x: 140, y: 460 },
+      data: {
+        label: '3. محرك الصوتيات (Voiceover)',
+        voiceStyle: 'حماسي إعلاني',
+        status: 'IDLE',
+      },
     },
-  },
-  {
-    id: 'node-timeline',
-    type: 'revideoTimelineNode',
-    position: { x: 620, y: 470 },
-    data: {
-      label: '4. تنسيق التايم لاين (Revideo)',
-      status: 'IDLE',
+    {
+      id: 'node-timeline',
+      type: 'revideoTimelineNode',
+      position: { x: 620, y: 460 },
+      data: {
+        label: '4. تنسيق التايم لاين (Revideo)',
+        status: 'IDLE',
+      },
     },
-  },
-  {
-    id: 'node-render',
-    type: 'renderExportNode',
-    position: { x: 380, y: 700 },
-    data: {
-      label: '5. تصدير ورندر MP4 (MinIO S3)',
-      status: 'IDLE',
+    {
+      id: 'node-render',
+      type: 'renderExportNode',
+      position: { x: 380, y: 690 },
+      data: {
+        label: '5. تصدير ورندر MP4 (MinIO S3)',
+        status: 'IDLE',
+      },
     },
-  },
-];
+  ],
+  edges: [
+    { id: 'e-trigger-llm', source: 'node-trigger', target: 'node-llm', animated: true, style: { stroke: '#06b6d4', strokeWidth: 2 } },
+    { id: 'e-llm-tts', source: 'node-llm', target: 'node-tts', animated: true, style: { stroke: '#38bdf8', strokeWidth: 2 } },
+    { id: 'e-llm-timeline', source: 'node-llm', target: 'node-timeline', animated: true, style: { stroke: '#10b981', strokeWidth: 2 } },
+    { id: 'e-tts-render', source: 'node-tts', target: 'node-render', animated: true, style: { stroke: '#38bdf8', strokeWidth: 2 } },
+    { id: 'e-timeline-render', source: 'node-timeline', target: 'node-render', animated: true, style: { stroke: '#10b981', strokeWidth: 2 } },
+  ],
+};
 
-const initialEdges: Edge[] = [
-  {
-    id: 'e-trigger-llm',
-    source: 'node-trigger',
-    target: 'node-llm',
-    animated: true,
-    style: { stroke: '#06b6d4', strokeWidth: 2 },
-  },
-  {
-    id: 'e-llm-tts',
-    source: 'node-llm',
-    target: 'node-tts',
-    animated: true,
-    style: { stroke: '#38bdf8', strokeWidth: 2 },
-  },
-  {
-    id: 'e-llm-timeline',
-    source: 'node-llm',
-    target: 'node-timeline',
-    animated: true,
-    style: { stroke: '#10b981', strokeWidth: 2 },
-  },
-  {
-    id: 'e-tts-render',
-    source: 'node-tts',
-    target: 'node-render',
-    animated: true,
-    style: { stroke: '#38bdf8', strokeWidth: 2 },
-  },
-  {
-    id: 'e-timeline-render',
-    source: 'node-timeline',
-    target: 'node-render',
-    animated: true,
-    style: { stroke: '#10b981', strokeWidth: 2 },
-  },
-];
+// Pre-built Template 2: Web Research & Telegram Summary
+const templateResearchFlow: { nodes: Node[]; edges: Edge[] } = {
+  nodes: [
+    {
+      id: 'res-trigger',
+      type: 'triggerNode',
+      position: { x: 380, y: 30 },
+      data: { label: 'استفسار البحث', prompt: 'آخر أخبار تطورات الذكاء الاصطناعي اليوم', status: 'IDLE' },
+    },
+    {
+      id: 'res-search',
+      type: 'webSearchNode',
+      position: { x: 380, y: 220 },
+      data: { label: 'بحث الويب المباشر', maxResults: 3, status: 'IDLE' },
+    },
+    {
+      id: 'res-llm',
+      type: 'universalLlmNode',
+      position: { x: 380, y: 430 },
+      data: { label: 'تلخيص وتدقيق (Gemini Pro)', model: 'gemini-1.5-pro', status: 'IDLE' },
+    },
+    {
+      id: 'res-alert',
+      type: 'notificationAlertNode',
+      position: { x: 380, y: 640 },
+      data: { label: 'إرسال التقرير لتليجرام', channelType: 'telegram', status: 'IDLE' },
+    },
+  ],
+  edges: [
+    { id: 're1', source: 'res-trigger', target: 'res-search', animated: true, style: { stroke: '#06b6d4', strokeWidth: 2 } },
+    { id: 're2', source: 'res-search', target: 'res-llm', animated: true, style: { stroke: '#8b5cf6', strokeWidth: 2 } },
+    { id: 're3', source: 'res-llm', target: 'res-alert', animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 } },
+  ],
+};
+
+// Pre-built Template 3: Social Media Auto-Pipeline
+const templateSocialFlow: { nodes: Node[]; edges: Edge[] } = {
+  nodes: [
+    {
+      id: 'soc-cron',
+      type: 'scheduleTrigger',
+      position: { x: 380, y: 30 },
+      data: { label: 'جدولة يومية 9:00 ص', cronExpression: '0 9 * * *', status: 'IDLE' },
+    },
+    {
+      id: 'soc-llm',
+      type: 'llmAgentNode',
+      position: { x: 380, y: 220 },
+      data: { label: 'صياغة بوست وسيناريو', model: 'gemini-1.5-flash', status: 'IDLE' },
+    },
+    {
+      id: 'soc-img',
+      type: 'textToImageNode',
+      position: { x: 180, y: 440 },
+      data: { label: 'توليد كوفر المنشور (Imagen 3)', aspectRatio: '1:1', status: 'IDLE' },
+    },
+    {
+      id: 'soc-subs',
+      type: 'autoSubtitlesNode',
+      position: { x: 580, y: 440 },
+      data: { label: 'ترجمة وهوك إعلاني', stylePreset: 'glow_yellow', status: 'IDLE' },
+    },
+    {
+      id: 'soc-pub',
+      type: 'socialPublisherNode',
+      position: { x: 380, y: 660 },
+      data: { label: 'نشر تلقائي لـ TikTok و YouTube', targetPlatform: 'youtube_shorts', status: 'IDLE' },
+    },
+  ],
+  edges: [
+    { id: 'se1', source: 'soc-cron', target: 'soc-llm', animated: true, style: { stroke: '#f59e0b', strokeWidth: 2 } },
+    { id: 'se2', source: 'soc-llm', target: 'soc-img', animated: true, style: { stroke: '#ec4899', strokeWidth: 2 } },
+    { id: 'se3', source: 'soc-llm', target: 'soc-subs', animated: true, style: { stroke: '#ef4444', strokeWidth: 2 } },
+    { id: 'se4', source: 'soc-img', target: 'soc-pub', animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 } },
+    { id: 'se5', source: 'soc-subs', target: 'soc-pub', animated: true, style: { stroke: '#3b82f6', strokeWidth: 2 } },
+  ],
+};
+
+// Pre-built Template 4: Document RAG QA
+const templateRagFlow: { nodes: Node[]; edges: Edge[] } = {
+  nodes: [
+    {
+      id: 'rag-upload',
+      type: 'fileUploadNode',
+      position: { x: 380, y: 30 },
+      data: { label: 'رفع ملفات الـ PDF والعقود', allowedTypes: 'pdf', status: 'IDLE' },
+    },
+    {
+      id: 'rag-parser',
+      type: 'docParserNode',
+      position: { x: 380, y: 220 },
+      data: { label: 'تقطيع وفهرسة المقاطع (Chunks)', chunkSize: 500, status: 'IDLE' },
+    },
+    {
+      id: 'rag-retriever',
+      type: 'vectorSearchNode',
+      position: { x: 380, y: 430 },
+      data: { label: 'البحث الدلالي بقواعد المتجهات', topK: 4, status: 'IDLE' },
+    },
+    {
+      id: 'rag-json',
+      type: 'structuredJsonNode',
+      position: { x: 380, y: 640 },
+      data: { label: 'استخراج النتائج المهيكلة', schemaFormat: 'answers, citations', status: 'IDLE' },
+    },
+  ],
+  edges: [
+    { id: 're1', source: 'rag-upload', target: 'rag-parser', animated: true, style: { stroke: '#10b981', strokeWidth: 2 } },
+    { id: 're2', source: 'rag-parser', target: 'rag-retriever', animated: true, style: { stroke: '#10b981', strokeWidth: 2 } },
+    { id: 're3', source: 'rag-retriever', target: 'rag-json', animated: true, style: { stroke: '#8b5cf6', strokeWidth: 2 } },
+  ],
+};
 
 export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
   onLoadTimelineClips,
   onSwitchToStudio,
 }) => {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [nodes, setNodes] = useState<Node[]>(templateVideoFlow.nodes);
+  const [edges, setEdges] = useState<Edge[]>(templateVideoFlow.edges);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [runProgress, setRunProgress] = useState<number>(0);
   const [statusMessage, setStatusMessage] = useState<string>('جاهز للتشغيل');
@@ -145,6 +237,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     videoUrl?: string;
     clips?: TimelineClip[];
   } | null>(null);
+
+  // Search and Category filtering
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   // Update node data helper
   const updateNodeData = useCallback((nodeId: string, key: string, value: any) => {
@@ -202,201 +298,303 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     []
   );
 
-  // Save workflow definition to Django Backend
+  // Load a Pre-built Template
+  const handleLoadTemplate = (templateKey: string) => {
+    let t = templateVideoFlow;
+    if (templateKey === 'research') t = templateResearchFlow;
+    if (templateKey === 'social') t = templateSocialFlow;
+    if (templateKey === 'rag') t = templateRagFlow;
+
+    setNodes(
+      t.nodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          status: 'IDLE',
+          onChange: (key: string, val: any) => updateNodeData(node.id, key, val),
+        },
+      }))
+    );
+    setEdges(t.edges);
+    setRunProgress(0);
+    setStatusMessage('تم تحميل القالب بنجاح');
+    setCompletedResult(null);
+  };
+
+  // Add any catalog node to canvas
+  const addNodeToCanvas = (nodeDef: NodeDefinition) => {
+    const id = `node-${nodeDef.type}-${Date.now().toString(36)}`;
+    const newNode: Node = {
+      id,
+      type: nodeDef.type,
+      position: {
+        x: 350 + (Math.random() * 80 - 40),
+        y: 100 + nodes.length * 110,
+      },
+      data: {
+        ...nodeDef.defaultData,
+        status: 'IDLE',
+        onChange: (key: string, val: any) => updateNodeData(id, key, val),
+      },
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+  };
+
+  // Filter catalog nodes by category and search
+  const filteredCatalog = ALL_NODES.filter((n) => {
+    const matchesCategory = selectedCategory === 'all' || n.category === selectedCategory;
+    const matchesSearch =
+      searchQuery.trim() === '' ||
+      n.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      n.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // Save current workflow graph to Django Backend
   const handleSaveWorkflow = async () => {
     try {
+      setStatusMessage('جاري حفظ المخطط في قاعدة البيانات...');
+      const graphData = {
+        nodes: nodes.map((n) => ({
+          id: n.id,
+          type: n.type,
+          position: n.position,
+          data: {
+            ...n.data,
+            onChange: undefined,
+          },
+        })),
+        edges,
+      };
+
       const res = await fetch('/api/workflows/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: workflowId || undefined,
-          title: 'مخطط إنتاج الفيديو الآلي (LangGraph Pipeline)',
-          description: 'مخطط مرئي يربط الذكاء الاصطناعي مع Revideo و FFmpeg',
-          graph_data: { nodes, edges },
+          title: 'مخطط الأتمتة الشامل بالذكاء الاصطناعي',
+          description: 'خط إنتاج متكامل يربط بين وكلاء الذكاء والميديا والتايم لاين',
+          graph_data: graphData,
         }),
       });
+
       const data = await res.json();
-      if (data.workflow) {
-        setWorkflowId(data.workflow.id);
-        alert('✓ تم حفظ المخطط بنجاح في قاعدة البيانات!');
+      if (data.id) {
+        setWorkflowId(data.id);
+        setStatusMessage(`تم حفظ المخطط بنجاح (ID: ${data.id.slice(0, 8)}...)`);
       }
-    } catch (err) {
-      console.error('Error saving workflow:', err);
-      alert('حدث خطأ أثناء حفظ المخطط');
+    } catch (err: any) {
+      console.error('Failed to save workflow:', err);
+      setStatusMessage('فشل في حفظ المخطط: ' + err.message);
     }
   };
 
-  // Run Workflow via LangGraph in Django Backend + Listen to SSE Stream
+  // Run the Workflow through Backend LangGraph
   const handleRunWorkflow = async () => {
-    setIsRunning(true);
-    setRunProgress(5);
-    setStatusMessage('جاري تشغيل المخطط عبر محرك LangGraph في الباكنج...');
-    setCompletedResult(null);
-
-    // Reset nodes status to IDLE
-    setNodes((nds) =>
-      nds.map((n) => ({
-        ...n,
-        data: { ...n.data, status: 'IDLE' },
-      }))
-    );
-
     try {
-      // 1. Ensure workflow is saved/created first
+      setIsRunning(true);
+      setRunProgress(5);
+      setStatusMessage('جاري بدء تشغيل محرك LangGraph في الباك إند...');
+      setCompletedResult(null);
+
+      // Reset nodes visual state to IDLE
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          data: { ...n.data, status: 'IDLE' },
+        }))
+      );
+
+      // Save/Get workflow ID first
+      let currentWfId = workflowId;
+      const graphData = {
+        nodes: nodes.map((n) => ({
+          id: n.id,
+          type: n.type,
+          position: n.position,
+          data: { ...n.data, onChange: undefined },
+        })),
+        edges,
+      };
+
       const saveRes = await fetch('/api/workflows/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: workflowId || undefined,
-          title: 'مخطط تشغيل فيديو مباشر',
-          graph_data: { nodes, edges },
+          title: 'تشغيل فوري للمخطط',
+          graph_data: graphData,
         }),
       });
       const saveData = await saveRes.json();
-      const currentWfId = saveData.workflow.id;
-      setWorkflowId(currentWfId);
+      currentWfId = saveData.id;
+      setWorkflowId(saveData.id);
 
-      // 2. Launch Workflow Run
-      const triggerNode = nodes.find((n) => n.type === 'triggerNode');
+      // Extract trigger inputs
+      const triggerNode = nodes.find((n) => n.type === 'triggerNode' || n.type === 'scheduleTrigger');
+      const inputs = {
+        prompt: triggerNode?.data?.prompt || 'فيديو إعلاني ذكي متكامل',
+        duration: triggerNode?.data?.duration || 5,
+      };
+
+      // Trigger Execution
       const runRes = await fetch(`/api/workflows/${currentWfId}/run/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          inputs: {
-            prompt: triggerNode?.data.prompt || 'فيديو إعلاني',
-            duration: triggerNode?.data.duration || 6,
-          },
-        }),
+        body: JSON.stringify({ inputs }),
       });
       const runData = await runRes.json();
       const runId = runData.run_id;
 
-      // 3. Listen to Realtime SSE Events from Backend
+      if (!runId) throw new Error('لم يتم استلام رقم تشغيل صالح من الخادم');
+
+      // Subscribe to Real-time SSE Stream
       const eventSource = new EventSource(`/events/workflow/${runId}/`);
 
       eventSource.onmessage = (event) => {
         try {
           const payload = JSON.parse(event.data);
-          const { node_id, status, percent, message, final_state } = payload;
+          const { node_id, status, percent, message, video_url, timeline_clips, final_state } = payload;
 
           if (percent !== undefined) setRunProgress(percent);
           if (message) setStatusMessage(message);
 
-          // Update active node status on canvas
+          // Update active node status in React Flow
           if (node_id && node_id !== 'GLOBAL_END' && node_id !== 'GLOBAL_ERROR') {
             setNodes((nds) =>
-              nds.map((node) => {
-                if (node.id === node_id) {
+              nds.map((n) => {
+                if (n.id === node_id) {
                   return {
-                    ...node,
+                    ...n,
                     data: {
-                      ...node.data,
+                      ...n.data,
                       status: status || 'RUNNING',
+                      outputPreview: payload.scenes?.[0]?.title || payload.video_url || undefined,
                     },
                   };
                 }
-                return node;
+                return n;
               })
             );
           }
 
-          // On Completion
-          if (status === 'COMPLETED' && (percent >= 100 || payload.status === 'COMPLETED')) {
-            if (payload.video_url) {
-              setCompletedResult((prev) => ({ ...prev, videoUrl: payload.video_url }));
-            }
-            if (final_state) {
-              setCompletedResult({
-                videoUrl: final_state.video_url,
-                clips: final_state.timeline_clips,
-              });
-            }
+          // Handle Final Video or Timeline Completion
+          const resolvedVideoUrl = video_url || final_state?.video_url;
+          const resolvedClips = timeline_clips || final_state?.timeline_clips;
+
+          if (resolvedVideoUrl || resolvedClips) {
+            setCompletedResult({
+              videoUrl: resolvedVideoUrl,
+              clips: resolvedClips,
+            });
           }
 
-          if (payload.status === 'COMPLETED' && node_id === 'GLOBAL_END') {
-            eventSource.close();
+          if (status === 'COMPLETED' && (node_id === 'GLOBAL_END' || percent >= 100)) {
             setIsRunning(false);
+            setRunProgress(100);
+            setStatusMessage('اكتمل تنفيذ المخطط بالكامل بنجاح! 🎉');
+            eventSource.close();
+          } else if (status === 'FAILED') {
+            setIsRunning(false);
+            setStatusMessage('فشل تنفيذ المخطط: ' + message);
+            eventSource.close();
           }
         } catch (e) {
-          console.error('SSE parse error:', e);
+          console.warn('Error parsing SSE message:', e);
         }
       };
 
       eventSource.onerror = () => {
-        eventSource.close();
         setIsRunning(false);
+        eventSource.close();
       };
     } catch (err: any) {
-      console.error('Workflow run error:', err);
       setIsRunning(false);
-      setStatusMessage(`فشل التشغيل: ${err.message}`);
+      console.error('Run workflow failed:', err);
+      setStatusMessage('خطأ في إطلاق المخطط: ' + err.message);
     }
   };
 
-  // Add a new node to canvas from palette
-  const addNodeToCanvas = (type: string, label: string) => {
-    const id = `node-${Date.now()}`;
-    const newNode: Node = {
-      id,
-      type,
-      position: { x: 300 + Math.random() * 80, y: 200 + Math.random() * 80 },
-      data: {
-        label,
-        status: 'IDLE',
-      },
-    };
-    setNodes((nds) => [...nds, newNode]);
-  };
-
-  // Transfer generated clips to NLE timeline & switch view
+  // Transfer generated clips directly to NLE Timeline
   const handleSendToTimeline = () => {
-    if (completedResult?.clips) {
-      onLoadTimelineClips(completedResult.clips);
+    if (completedResult?.clips && completedResult.clips.length > 0) {
+      const triggerNode = nodes.find((n) => n.type === 'triggerNode');
+      const duration = Number(triggerNode?.data?.duration || 5);
+      const bgColor = String(triggerNode?.data?.bgColor || '#080a0f');
+
+      onLoadTimelineClips(completedResult.clips, { duration, bgColor });
+      onSwitchToStudio();
+    } else {
+      // Fallback dummy clips if timeline node executed
+      onSwitchToStudio();
     }
-    onSwitchToStudio();
   };
 
   return (
-    <div className="workflow-studio-root">
-      {/* Top Workflow Studio Bar */}
+    <div className="workflow-builder-root" dir="rtl">
+      {/* Top Action Header */}
       <div className="workflow-top-bar">
-        <div className="wf-bar-left">
-          <div className="studio-brand">
-            <span className="brand-badge wf-badge">LANGGRAPH</span>
-            <span className="brand-name">AI Workflow Builder</span>
+        <div className="wf-title-section">
+          <div className="wf-badge-live">
+            <Sparkles size={14} className="sparkle-icon" />
+            <span>محرك المخططات الشامل (Universal Flow OS)</span>
           </div>
-
-          <div className="run-status-indicator">
-            <span className={`status-dot ${isRunning ? 'pulse' : ''}`} />
-            <span className="status-text">{statusMessage}</span>
-            {isRunning && <span className="progress-num">{runProgress}%</span>}
-          </div>
+          <h2 className="wf-title">منظومة الوكلاء والميديا والأتمتة السحابية</h2>
         </div>
 
-        <div className="wf-bar-right">
+        {/* Templates Selector */}
+        <div className="wf-templates-dropdown">
+          <LayoutTemplate size={14} />
+          <span>القوالب الجاهزة:</span>
+          <select
+            className="node-select-compact"
+            onChange={(e) => handleLoadTemplate(e.target.value)}
+            defaultValue="video"
+          >
+            <option value="video">🎬 فيديو إعلاني ذكي متكامل</option>
+            <option value="research">🔍 باحث الأخبار والأتمتة</option>
+            <option value="social">📲 خط إنتاج محتوى السوشيال ميديا</option>
+            <option value="rag">📚 نظام الإجابة من المستندات (RAG)</option>
+          </select>
+        </div>
+
+        {/* Execution progress banner */}
+        <div className="wf-progress-container">
+          <div className="progress-bar-bg">
+            <div
+              className={`progress-bar-fill ${isRunning ? 'pulse' : ''}`}
+              style={{ width: `${runProgress}%` }}
+            ></div>
+          </div>
+          <span className="progress-status-text">
+            {runProgress}% - {statusMessage}
+          </span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="wf-actions-group">
           <button
-            className="btn btn-outline"
+            className="btn-wf-save"
             onClick={handleSaveWorkflow}
-            title="حفظ المخطط في الباكنج"
+            disabled={isRunning}
+            title="حفظ هيكل المخطط في قاعدة البيانات"
           >
             <Save size={14} />
             <span>حفظ المخطط</span>
           </button>
 
           <button
-            className="btn btn-run-workflow"
+            className={`btn-wf-run ${isRunning ? 'running' : ''}`}
             onClick={handleRunWorkflow}
             disabled={isRunning}
-            title="تنفيذ المخطط بالكامل عبر محرك LangGraph"
           >
-            <Play size={14} fill={isRunning ? 'none' : '#041410'} />
-            <span>{isRunning ? `جاري التنفيذ (${runProgress}%)...` : 'تشغيل المخطط (LangGraph)'}</span>
+            <Play size={14} />
+            <span>{isRunning ? 'جاري التنفيذ...' : 'تشغيل المخطط ⚡'}</span>
           </button>
 
           <button
-            className="btn btn-secondary"
+            className="btn-wf-studio-bridge"
             onClick={handleSendToTimeline}
-            title="نقل نتائج المخطط إلى محرر التايم لاين"
+            title="نقل نتائج المخطط إلى تايم لاين محرر الاستوديو"
           >
             <Film size={14} />
             <span>فتح في محرر الاستوديو 🎬</span>
@@ -404,90 +602,111 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
         </div>
       </div>
 
-      {/* Main Canvas + Sidebar Area */}
+      {/* Main Canvas + Expanded Node Catalog Sidebar */}
       <div className="workflow-workspace">
         {/* Left Node Palette Sidebar */}
-        <aside className="wf-node-palette">
+        <aside className="wf-node-palette" style={{ width: '340px' }}>
           <div className="palette-header">
             <Layers size={15} />
-            <span>إضافة عقد (Add Nodes)</span>
+            <span>مكتبة العقد الشاملة ({ALL_NODES.length}+ عقدة)</span>
           </div>
 
-          <div className="palette-items-list">
-            <div
-              className="palette-item"
-              onClick={() => addNodeToCanvas('triggerNode', 'مدخلات وموضوع جديد')}
-            >
-              <div className="palette-icon trigger-icon">
-                <Zap size={14} />
-              </div>
-              <div className="palette-info">
-                <strong>مدخلات (Trigger)</strong>
-                <span>نص وموضوع الفيديو</span>
-              </div>
-              <Plus size={14} className="plus-icon" />
+          {/* Search Box */}
+          <div className="palette-search-box" style={{ padding: '8px 12px' }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Search size={13} style={{ position: 'absolute', right: '10px', color: '#94a3b8' }} />
+              <input
+                type="text"
+                className="node-input"
+                style={{ paddingRight: '28px', fontSize: '11px', height: '30px' }}
+                placeholder="ابحث عن أي عقدة (ذكاء، بحث، ميديا...)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
+          </div>
 
-            <div
-              className="palette-item"
-              onClick={() => addNodeToCanvas('llmAgentNode', 'وكيل ذكي مخصص')}
+          {/* Category Filter Pills */}
+          <div className="category-filter-pills" style={{ padding: '0 10px 8px 10px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+            <button
+              className={`pill-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+              onClick={() => setSelectedCategory('all')}
+              style={{
+                fontSize: '10px',
+                padding: '3px 8px',
+                borderRadius: '12px',
+                background: selectedCategory === 'all' ? '#38bdf8' : '#1e293b',
+                color: selectedCategory === 'all' ? '#000' : '#cbd5e1',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
             >
-              <div className="palette-icon llm-icon">
-                <Bot size={14} />
-              </div>
-              <div className="palette-info">
-                <strong>وكيل ذكاء (LLM Agent)</strong>
-                <span>تأليف وتقسيم المشاهد</span>
-              </div>
-              <Plus size={14} className="plus-icon" />
-            </div>
+              الكل ({ALL_NODES.length})
+            </button>
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                className={`pill-btn ${selectedCategory === cat.id ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat.id)}
+                style={{
+                  fontSize: '10px',
+                  padding: '3px 8px',
+                  borderRadius: '12px',
+                  background: selectedCategory === cat.id ? cat.color : '#1e293b',
+                  color: selectedCategory === cat.id ? '#000' : '#cbd5e1',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                {cat.name.split(' ')[0]}
+              </button>
+            ))}
+          </div>
 
-            <div
-              className="palette-item"
-              onClick={() => addNodeToCanvas('ttsVoiceNode', 'صوتيات وتعليق')}
-            >
-              <div className="palette-icon tts-icon">
-                <Mic size={14} />
+          {/* Filtered Nodes List */}
+          <div className="palette-items-list" style={{ maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
+            {filteredCatalog.map((nodeDef) => (
+              <div
+                key={nodeDef.type}
+                className="palette-item"
+                style={{ borderRight: `3px solid ${nodeDef.categoryColor}` }}
+                onClick={() => addNodeToCanvas(nodeDef)}
+              >
+                <div
+                  className="palette-icon"
+                  style={{ background: `${nodeDef.categoryColor}22`, color: nodeDef.categoryColor }}
+                >
+                  <Plus size={14} />
+                </div>
+                <div className="palette-info">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                    <strong style={{ fontSize: '11px' }}>{nodeDef.label}</strong>
+                    <span
+                      style={{
+                        fontSize: '8px',
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        background: `${nodeDef.categoryColor}25`,
+                        color: nodeDef.categoryColor,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {nodeDef.categoryLabel}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '10px', color: '#94a3b8', lineHeight: 1.2 }}>
+                    {nodeDef.description}
+                  </span>
+                </div>
               </div>
-              <div className="palette-info">
-                <strong>صوتيات (TTS Voice)</strong>
-                <span>توليد النبرة والموسيقى</span>
-              </div>
-              <Plus size={14} className="plus-icon" />
-            </div>
-
-            <div
-              className="palette-item"
-              onClick={() => addNodeToCanvas('revideoTimelineNode', 'منسق التايم لاين')}
-            >
-              <div className="palette-icon timeline-icon">
-                <Film size={14} />
-              </div>
-              <div className="palette-info">
-                <strong>تايم لاين (Revideo)</strong>
-                <span>تشكيل النصوص والأبعاد</span>
-              </div>
-              <Plus size={14} className="plus-icon" />
-            </div>
-
-            <div
-              className="palette-item"
-              onClick={() => addNodeToCanvas('renderExportNode', 'تصدير ورندر')}
-            >
-              <div className="palette-icon render-icon">
-                <FileVideo size={14} />
-              </div>
-              <div className="palette-info">
-                <strong>تصدير (Render MP4)</strong>
-                <span>معالجة FFmpeg و MinIO</span>
-              </div>
-              <Plus size={14} className="plus-icon" />
-            </div>
+            ))}
           </div>
 
           {/* Result Card if Finished */}
           {completedResult?.videoUrl && (
-            <div className="wf-completed-card">
+            <div className="wf-completed-card" style={{ marginTop: '12px' }}>
               <div className="card-top">
                 <CheckCircle2 size={16} color="#10b981" />
                 <span>اكتمل إنتاج الفيديو بنجاح!</span>
@@ -516,7 +735,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            nodeTypes={customNodeTypes}
+            nodeTypes={nodeTypes}
             fitView
             fitViewOptions={{ padding: 0.2 }}
           >
