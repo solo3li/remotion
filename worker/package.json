@@ -1,0 +1,13 @@
+{
+  "name": "revideo-worker",
+  "version": "1.0.0",
+  "description": "Background rendering worker for Revideo using Node.js, FFmpeg, and MinIO",
+  "main": "worker.js",
+  "scripts": {
+    "start": "node worker.js"
+  },
+  "dependencies": {
+    "redis": "^4.6.13",
+    "@aws-sdk/client-s3": "^3.550.0"
+  }
+}
