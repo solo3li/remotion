@@ -33,10 +33,11 @@ run_check() {
 # 1. Revideo Studio NLE Frontend
 run_check "Revideo Studio HTML" "${BASE_URL}/app/" "200"
 
-# 2. DesignCombo
-run_check "DesignCombo HTML" "${BASE_URL}/designcombo/" "200"
-run_check "DesignCombo Local Font (CORS Free)" "${BASE_URL}/designcombo/fonts/Geist-SemiBold.ttf" "200"
-run_check "DesignCombo Main JS Bundle" "${BASE_URL}/designcombo/assets/index-DgiDwebz.js" "200"
+# 2. Elah Video Editor (elahlabs/elah)
+run_check "Elah Home HTML" "${BASE_URL}/elah/" "200"
+run_check "Elah Video Editor Route" "${BASE_URL}/elah/editor" "200"
+run_check "Elah Production Playground" "${BASE_URL}/elah/playground/production" "200"
+run_check "Elah Static Asset (Woff2 Font)" "${BASE_URL}/elah/_next/static/media/017d9bea37084d9b-s.p.41rroleoq1br7.woff2" "200"
 
 # 3. Langflow
 run_check "Langflow HTML (Base Href /langflow/)" "${BASE_URL}/langflow/" "200"

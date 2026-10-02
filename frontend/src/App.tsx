@@ -356,9 +356,9 @@ export const App: React.FC = () => {
               <Film size={13} />
               <span>Revideo NLE</span>
             </a>
-            <a href="/designcombo/" className="suite-nav-link" title="DesignCombo Web Video Editor">
+            <a href="/elah/editor" className="suite-nav-link" title="Elah Web Video Editor">
               <Video size={13} />
-              <span>DesignCombo</span>
+              <span>Elah Editor</span>
             </a>
             <a href="/langflow/" className="suite-nav-link" title="Langflow Visual AI Agent Workflows">
               <Sparkles size={13} />
