@@ -14,6 +14,7 @@ import {
   Volume2,
   VolumeX,
   Workflow,
+  Video,
 } from 'lucide-react';
 import { WorkflowBuilder } from './components/workflow/WorkflowBuilder';
 
@@ -348,6 +349,26 @@ export const App: React.FC = () => {
             <span className="brand-badge">PRO SUITE</span>
             <span className="brand-name">Revideo Cloud Studio</span>
           </div>
+
+          {/* Unified Suite Switcher linking all 4 ecosystem apps */}
+          <nav className="unified-suite-nav" aria-label="Creative Suite Navigation">
+            <a href="/app/" className="suite-nav-link active" title="Revideo Timeline NLE Studio">
+              <Film size={13} />
+              <span>Revideo NLE</span>
+            </a>
+            <a href="/designcombo/" className="suite-nav-link" title="DesignCombo Web Video Editor">
+              <Video size={13} />
+              <span>DesignCombo</span>
+            </a>
+            <a href="/langflow/" className="suite-nav-link" title="Langflow Visual AI Agent Workflows">
+              <Sparkles size={13} />
+              <span>Langflow</span>
+            </a>
+            <a href="/comfyui/" className="suite-nav-link" title="ComfyUI Generative AI Nodes Graph">
+              <Workflow size={13} />
+              <span>ComfyUI</span>
+            </a>
+          </nav>
 
           {/* Mode Switcher: NLE Timeline Studio vs AI Workflow Builder */}
           <div className="studio-mode-switcher">

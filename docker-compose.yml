@@ -110,6 +110,58 @@ services:
     networks:
       - saas-net
 
+  designcombo:
+    build:
+      context: ./designcombo
+    image: remotion-designcombo
+    container_name: saas_designcombo
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.designcombo.rule=PathPrefix(`/designcombo`)"
+      - "traefik.http.routers.designcombo.entrypoints=web"
+      - "traefik.http.services.designcombo.loadbalancer.server.port=80"
+    networks:
+      - saas-net
+
+  langflow:
+    image: langflowai/langflow:latest
+    container_name: saas_langflow
+    restart: always
+    environment:
+      - LANGFLOW_HOST=0.0.0.0
+      - LANGFLOW_PORT=7860
+      - LANGFLOW_ROOT_PATH=/langflow
+      - LANGFLOW_AUTO_SAVING=true
+      - LANGFLOW_AUTO_LOGIN=true
+      - LANGFLOW_SUPERUSER=admin
+      - LANGFLOW_SUPERUSER_PASSWORD=AdminPass2026!
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.langflow.rule=PathPrefix(`/langflow`)"
+      - "traefik.http.routers.langflow.entrypoints=web"
+      - "traefik.http.services.langflow.loadbalancer.server.port=7860"
+    networks:
+      - saas-net
+
+  comfyui:
+    image: remotion-comfyui
+    container_name: saas_comfyui
+    restart: always
+    command: ["python", "main.py", "--listen", "0.0.0.0", "--port", "8188", "--cpu", "--disable-auto-launch"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.comfyui.rule=PathPrefix(`/comfyui`)"
+      - "traefik.http.routers.comfyui.entrypoints=web"
+      - "traefik.http.middlewares.comfyui-redirect.redirectregex.regex=^/comfyui$$"
+      - "traefik.http.middlewares.comfyui-redirect.redirectregex.replacement=/comfyui/"
+      - "traefik.http.middlewares.comfyui-strip.stripprefix.prefixes=/comfyui"
+      - "traefik.http.routers.comfyui.middlewares=comfyui-redirect,comfyui-strip"
+      - "traefik.http.services.comfyui.loadbalancer.server.port=8188"
+    networks:
+      - saas-net
+
+
 volumes:
   minio_data:
 
