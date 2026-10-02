@@ -1,5 +1,18 @@
 import React from 'react';
 import { TimelineClip, ProjectSettings } from '../types';
+import {
+  Type,
+  Sliders,
+  Clock,
+  Copy,
+  Trash2,
+  Sparkles,
+  Volume2,
+  Palette,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+} from 'lucide-react';
 
 interface InspectorPanelProps {
   selectedClip: TimelineClip | null;
@@ -22,25 +35,37 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     <aside className="inspector-panel">
       <div className="inspector-header">
         <span className="panel-badge">
-          {selectedClip ? 'خصائص العنصر المحدد' : 'إعدادات المشروع الكلي'}
+          {selectedClip ? `خصائص: ${selectedClip.title || selectedClip.type}` : 'إعدادات المشروع الكلي'}
         </span>
       </div>
 
       <div className="inspector-scroll-area">
         {selectedClip ? (
           <div className="clip-properties-form">
-            {/* Quick Title & Type */}
+            {/* Quick Type & Layer Pill */}
             <div className="property-section">
               <div className="clip-type-pill">
                 <span className="type-dot"></span>
-                <span>نوع المقطع: <strong>{selectedClip.type.toUpperCase()}</strong></span>
+                <span>نوع العنصر: <strong>{selectedClip.type.toUpperCase()}</strong></span>
+              </div>
+              <div className="prop-row" style={{ marginTop: '8px' }}>
+                <label>اسم المقطع:</label>
+                <input
+                  type="text"
+                  value={selectedClip.title || ''}
+                  onChange={(e) => onUpdateClip(selectedClip.id, { title: e.target.value })}
+                  className="inspector-input"
+                />
               </div>
             </div>
 
             {/* Text Properties (if text) */}
             {selectedClip.type === 'text' && (
               <div className="property-section">
-                <h4 className="section-title">محتوى النص ومظهره</h4>
+                <h4 className="section-title">
+                  <Type size={14} className="title-icon" />
+                  <span>محتوى النص والمظهر</span>
+                </h4>
                 <div className="prop-row">
                   <label>النص المعروض:</label>
                   <textarea
@@ -64,7 +89,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     />
                   </div>
                   <div className="prop-row">
-                    <label>لون النص:</label>
+                    <label>لون الخط:</label>
                     <div className="inspector-color-wrap">
                       <input
                         type="color"
@@ -75,86 +100,170 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     </div>
                   </div>
                 </div>
+
+                <div className="prop-row">
+                  <label>محاذاة النص:</label>
+                  <div className="align-buttons-group">
+                    <button
+                      className={`btn-align ${selectedClip.textAlign === 'right' ? 'active' : ''}`}
+                      onClick={() => onUpdateClip(selectedClip.id, { textAlign: 'right' })}
+                      title="يمين"
+                    >
+                      <AlignRight size={14} />
+                    </button>
+                    <button
+                      className={`btn-align ${selectedClip.textAlign === 'center' || !selectedClip.textAlign ? 'active' : ''}`}
+                      onClick={() => onUpdateClip(selectedClip.id, { textAlign: 'center' })}
+                      title="وسط"
+                    >
+                      <AlignCenter size={14} />
+                    </button>
+                    <button
+                      className={`btn-align ${selectedClip.textAlign === 'left' ? 'active' : ''}`}
+                      onClick={() => onUpdateClip(selectedClip.id, { textAlign: 'left' })}
+                      title="يسار"
+                    >
+                      <AlignLeft size={14} />
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Transform Properties (Position & Size) */}
-            <div className="property-section">
-              <h4 className="section-title">الموضع والأبعاد (Transform)</h4>
-              <div className="prop-grid-2">
+            {/* Video & Media Specific Controls */}
+            {(selectedClip.type === 'video' || selectedClip.type === 'audio') && (
+              <div className="property-section">
+                <h4 className="section-title">
+                  <Volume2 size={14} className="title-icon" />
+                  <span>الصوت ومستوى الإشارة</span>
+                </h4>
                 <div className="prop-row">
-                  <label>الموضع X:</label>
+                  <div className="slider-label-row">
+                    <label>مستوى الصوت (Volume):</label>
+                    <span>{Math.round((selectedClip.volume ?? 1) * 100)}%</span>
+                  </div>
                   <input
-                    type="number"
-                    value={selectedClip.x}
-                    onChange={(e) => onUpdateClip(selectedClip.id, { x: Number(e.target.value) })}
-                    className="inspector-input"
-                  />
-                </div>
-                <div className="prop-row">
-                  <label>الموضع Y:</label>
-                  <input
-                    type="number"
-                    value={selectedClip.y}
-                    onChange={(e) => onUpdateClip(selectedClip.id, { y: Number(e.target.value) })}
-                    className="inspector-input"
-                  />
-                </div>
-                <div className="prop-row">
-                  <label>العرض (W):</label>
-                  <input
-                    type="number"
-                    value={selectedClip.width}
-                    onChange={(e) => onUpdateClip(selectedClip.id, { width: Number(e.target.value) })}
-                    className="inspector-input"
-                  />
-                </div>
-                <div className="prop-row">
-                  <label>الارتفاع (H):</label>
-                  <input
-                    type="number"
-                    value={selectedClip.height}
-                    onChange={(e) => onUpdateClip(selectedClip.id, { height: Number(e.target.value) })}
-                    className="inspector-input"
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={selectedClip.volume ?? 1}
+                    onChange={(e) => onUpdateClip(selectedClip.id, { volume: Number(e.target.value) })}
+                    className="inspector-slider"
                   />
                 </div>
               </div>
+            )}
 
-              <div className="prop-row">
-                <div className="slider-label-row">
-                  <label>الشفافية (Opacity):</label>
-                  <span>{Math.round((selectedClip.opacity ?? 1) * 100)}%</span>
+            {/* Filter / Color Grade for Video & Shape */}
+            {(selectedClip.type === 'video' || selectedClip.type === 'shape') && (
+              <div className="property-section">
+                <h4 className="section-title">
+                  <Sparkles size={14} className="title-icon" />
+                  <span>الفلاتر والمؤثرات البصرية</span>
+                </h4>
+                <div className="prop-row">
+                  <label>فلتر الألوان (LUT / Grading):</label>
+                  <select
+                    value={selectedClip.filter || 'none'}
+                    onChange={(e) => onUpdateClip(selectedClip.id, { filter: e.target.value })}
+                    className="inspector-input"
+                  >
+                    <option value="none">طبيعي (بدون فلتر)</option>
+                    <option value="cinematic">سينمائي عميق (Cinematic Contrast)</option>
+                    <option value="vintage">فينتاج دافئ (Warm Vintage)</option>
+                    <option value="grayscale">أبيض وأسود كلاسيكي (Black & White)</option>
+                    <option value="cool">نيون مستقبلي (Cyber Cool)</option>
+                  </select>
                 </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={selectedClip.opacity ?? 1}
-                  onChange={(e) => onUpdateClip(selectedClip.id, { opacity: Number(e.target.value) })}
-                  className="inspector-slider"
-                />
               </div>
+            )}
 
-              <div className="prop-row">
-                <div className="slider-label-row">
-                  <label>زاوية الدوران (Rotation):</label>
-                  <span>{selectedClip.rotation || 0}°</span>
+            {/* Transform Properties */}
+            {selectedClip.type !== 'audio' && (
+              <div className="property-section">
+                <h4 className="section-title">
+                  <Sliders size={14} className="title-icon" />
+                  <span>الموضع والأبعاد (Transform)</span>
+                </h4>
+                <div className="prop-grid-2">
+                  <div className="prop-row">
+                    <label>الموضع X:</label>
+                    <input
+                      type="number"
+                      value={selectedClip.x}
+                      onChange={(e) => onUpdateClip(selectedClip.id, { x: Number(e.target.value) })}
+                      className="inspector-input"
+                    />
+                  </div>
+                  <div className="prop-row">
+                    <label>الموضع Y:</label>
+                    <input
+                      type="number"
+                      value={selectedClip.y}
+                      onChange={(e) => onUpdateClip(selectedClip.id, { y: Number(e.target.value) })}
+                      className="inspector-input"
+                    />
+                  </div>
+                  <div className="prop-row">
+                    <label>العرض (W):</label>
+                    <input
+                      type="number"
+                      value={selectedClip.width}
+                      onChange={(e) => onUpdateClip(selectedClip.id, { width: Number(e.target.value) })}
+                      className="inspector-input"
+                    />
+                  </div>
+                  <div className="prop-row">
+                    <label>الارتفاع (H):</label>
+                    <input
+                      type="number"
+                      value={selectedClip.height}
+                      onChange={(e) => onUpdateClip(selectedClip.id, { height: Number(e.target.value) })}
+                      className="inspector-input"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min={-180}
-                  max={180}
-                  value={selectedClip.rotation || 0}
-                  onChange={(e) => onUpdateClip(selectedClip.id, { rotation: Number(e.target.value) })}
-                  className="inspector-slider"
-                />
+
+                <div className="prop-row">
+                  <div className="slider-label-row">
+                    <label>الشفافية (Opacity):</label>
+                    <span>{Math.round((selectedClip.opacity ?? 1) * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={selectedClip.opacity ?? 1}
+                    onChange={(e) => onUpdateClip(selectedClip.id, { opacity: Number(e.target.value) })}
+                    className="inspector-slider"
+                  />
+                </div>
+
+                <div className="prop-row">
+                  <div className="slider-label-row">
+                    <label>الدوران (Rotation):</label>
+                    <span>{selectedClip.rotation || 0}°</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={-180}
+                    max={180}
+                    value={selectedClip.rotation || 0}
+                    onChange={(e) => onUpdateClip(selectedClip.id, { rotation: Number(e.target.value) })}
+                    className="inspector-slider"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Timing Section */}
             <div className="property-section">
-              <h4 className="section-title">التوقيت والمدة (Timing)</h4>
+              <h4 className="section-title">
+                <Clock size={14} className="title-icon" />
+                <span>التوقيت والمدة (Timing)</span>
+              </h4>
               <div className="prop-grid-2">
                 <div className="prop-row">
                   <label>وقت البدء (ثانية):</label>
@@ -185,13 +294,15 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 className="btn btn-secondary btn-full"
                 onClick={() => onDuplicateClip(selectedClip.id)}
               >
-                📋 مضاعفة المقطع
+                <Copy size={14} />
+                <span>مضاعفة المقطع</span>
               </button>
               <button
                 className="btn btn-danger btn-full"
                 onClick={() => onDeleteClip(selectedClip.id)}
               >
-                🗑️ حذف المقطع
+                <Trash2 size={14} />
+                <span>حذف المقطع</span>
               </button>
             </div>
           </div>
@@ -199,11 +310,14 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           <div className="project-settings-form">
             <div className="empty-selection-hint">
               <span className="hint-icon">🎯</span>
-              <p>انقر على أي مقطع في الكانفاس أو التايم لاين لتعديل خصائصه بمقابض التحكم.</p>
+              <p>انقر على أي مقطع في الكانفاس أو التايم لاين لتعديل أبعاده وموضعه ولونه بحرية.</p>
             </div>
 
             <div className="property-section">
-              <h4 className="section-title">إعدادات الفيديو الكلي</h4>
+              <h4 className="section-title">
+                <Palette size={14} className="title-icon" />
+                <span>إعدادات الفيديو الكلي</span>
+              </h4>
               <div className="prop-row">
                 <label>اسم المشروع:</label>
                 <input

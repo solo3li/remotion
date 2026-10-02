@@ -5,12 +5,21 @@ import { NLETimeline } from './components/NLETimeline';
 import { InspectorPanel } from './components/InspectorPanel';
 import { MediaDrawer } from './components/MediaDrawer';
 import { ExportModal } from './components/ExportModal';
+import { audioEngine } from './utils/audioEngine';
+import {
+  Film,
+  Sparkles,
+  ExternalLink,
+  Zap,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 
 export const App: React.FC = () => {
   // Project Global Settings
   const [projectSettings, setProjectSettings] = useState<ProjectSettings>({
     title: 'عرض ترويجي لمنتجنا الجديد',
-    duration: 5,
+    duration: 6,
     fps: 30,
     width: 1920,
     height: 1080,
@@ -18,10 +27,10 @@ export const App: React.FC = () => {
   });
 
   // Timeline Tracks
-  const [tracks] = useState<TimelineTrack[]>([
-    { id: 'track-text', name: 'طبقة النصوص (Text)', type: 'text', icon: '💬' },
-    { id: 'track-video', name: 'مسار الفيديو والأشكال (Visual)', type: 'video', icon: '🎬' },
-    { id: 'track-audio', name: 'مسار الصوت (Audio)', type: 'audio', icon: '🎵' },
+  const [tracks, setTracks] = useState<TimelineTrack[]>([
+    { id: 'track-text', name: 'طبقة النصوص (Text)', type: 'text', icon: '💬', isMuted: false },
+    { id: 'track-video', name: 'مسار الفيديو والأشكال (Visual)', type: 'video', icon: '🎬', isMuted: false },
+    { id: 'track-audio', name: 'مسار الصوت (Audio)', type: 'audio', icon: '🎵', isMuted: false },
   ]);
 
   // Clips in Timeline
@@ -33,7 +42,7 @@ export const App: React.FC = () => {
       title: 'العنوان الرئيسي',
       text: 'عرض ترويجي لمنتجنا الجديد',
       start: 0,
-      duration: 4.5,
+      duration: 5.5,
       x: 240,
       y: 190,
       width: 480,
@@ -42,6 +51,7 @@ export const App: React.FC = () => {
       opacity: 1,
       fontSize: 38,
       color: '#ffffff',
+      textAlign: 'center',
     },
     {
       id: 'clip-2',
@@ -50,7 +60,7 @@ export const App: React.FC = () => {
       title: 'النص الفرعي',
       text: '🔥 أقوى العروض والتخفيضات الحصرية لهذا الموسم',
       start: 0.8,
-      duration: 3.5,
+      duration: 4.5,
       x: 250,
       y: 290,
       width: 460,
@@ -59,6 +69,7 @@ export const App: React.FC = () => {
       opacity: 1,
       fontSize: 22,
       color: '#06b6d4',
+      textAlign: 'center',
     },
     {
       id: 'clip-3',
@@ -66,7 +77,7 @@ export const App: React.FC = () => {
       type: 'shape',
       title: 'خلفية متدرجة',
       start: 0,
-      duration: 5,
+      duration: 6,
       x: 200,
       y: 150,
       width: 560,
@@ -74,6 +85,7 @@ export const App: React.FC = () => {
       rotation: 0,
       opacity: 0.25,
       color: '#10b981',
+      borderRadius: 16,
     },
     {
       id: 'clip-4',
@@ -81,13 +93,14 @@ export const App: React.FC = () => {
       type: 'audio',
       title: 'موسيقى خلفية حماسية',
       start: 0,
-      duration: 5,
+      duration: 6,
       x: 0,
       y: 0,
       width: 0,
       height: 0,
       rotation: 0,
       opacity: 1,
+      volume: 1,
     },
   ]);
 
@@ -111,7 +124,36 @@ export const App: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  // Playback Loop
+  // Audio Engine Synchronization Loop
+  useEffect(() => {
+    const audioTrack = tracks.find((t) => t.id === 'track-audio');
+    const isTrackMuted = audioTrack?.isMuted ?? false;
+
+    if (!isPlaying) {
+      audioEngine.stopAll();
+      return;
+    }
+
+    const audioClips = clips.filter((c) => c.trackId === 'track-audio');
+    let hasActiveAudio = false;
+
+    audioClips.forEach((clip) => {
+      const isActive = currentTime >= clip.start && currentTime <= clip.start + clip.duration;
+      if (isActive) {
+        hasActiveAudio = true;
+        const offset = currentTime - clip.start;
+        audioEngine.syncAudioClip(clip.id, clip.src || '', offset, isPlaying, isTrackMuted);
+      } else {
+        audioEngine.stopClip(clip.id);
+      }
+    });
+
+    if (!hasActiveAudio) {
+      audioEngine.stopSyntheticBeat();
+    }
+  }, [currentTime, isPlaying, clips, tracks]);
+
+  // Timeline Playback Loop
   useEffect(() => {
     let animId: number;
     let lastTimestamp: number | null = null;
@@ -134,9 +176,59 @@ export const App: React.FC = () => {
 
     if (isPlaying) {
       animId = requestAnimationFrame(loop);
+    } else {
+      audioEngine.stopAll();
     }
     return () => cancelAnimationFrame(animId);
   }, [isPlaying, projectSettings.duration]);
+
+  // Track Mute Toggle
+  const handleToggleTrackMute = (trackId: string) => {
+    setTracks((prev) =>
+      prev.map((t) => (t.id === trackId ? { ...t, isMuted: !t.isMuted } : t))
+    );
+  };
+
+  // Keyboard Shortcuts (Space: Play/Pause, Del: Delete, C: Split, Arrows: Seek)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeTag = (document.activeElement?.tagName || '').toLowerCase();
+      if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
+        return;
+      }
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setIsPlaying((p) => !p);
+      } else if (e.code === 'Delete' || e.code === 'Backspace') {
+        if (selectedClipId) {
+          e.preventDefault();
+          handleDeleteClip(selectedClipId);
+        }
+      } else if (e.key === 'c' || e.key === 'C') {
+        if (selectedClipId) {
+          e.preventDefault();
+          handleSplitClip(selectedClipId, currentTime);
+        }
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        const step = e.shiftKey ? 1.0 : 0.1;
+        setCurrentTime((t) => Math.min(projectSettings.duration, Number((t + step).toFixed(2))));
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        const step = e.shiftKey ? 1.0 : 0.1;
+        setCurrentTime((t) => Math.max(0, Number((t - step).toFixed(2))));
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        if (selectedClipId) {
+          handleDuplicateClip(selectedClipId);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedClipId, currentTime, projectSettings.duration]);
 
   // Clip CRUD Handlers
   const handleUpdateClip = (id: string, updates: Partial<TimelineClip>) => {
@@ -145,6 +237,7 @@ export const App: React.FC = () => {
 
   const handleDeleteClip = (id: string) => {
     setClips((prev) => prev.filter((c) => c.id !== id));
+    audioEngine.stopClip(id);
     if (selectedClipId === id) setSelectedClipId(null);
   };
 
@@ -199,7 +292,7 @@ export const App: React.FC = () => {
     setSelectedClipId(newId);
   };
 
-  // Trigger Video Export to Django + Inngest + Revideo Worker
+  // Trigger Video Export to Django + Redis + Worker
   const handleStartRender = async () => {
     setIsExporting(true);
     try {
@@ -230,6 +323,7 @@ export const App: React.FC = () => {
   };
 
   const selectedClip = clips.find((c) => c.id === selectedClipId) || null;
+  const isVideoTrackMuted = tracks.find((t) => t.id === 'track-video')?.isMuted || false;
 
   return (
     <div className="nle-studio-root">
@@ -237,8 +331,8 @@ export const App: React.FC = () => {
       <header className="nle-top-bar">
         <div className="bar-left">
           <div className="studio-brand">
-            <span className="brand-badge">NLE PRO</span>
-            <span className="brand-name">Revideo Studio</span>
+            <span className="brand-badge">NLE STUDIO</span>
+            <span className="brand-name">Revideo Cloud Studio</span>
           </div>
 
           <div className="project-title-box">
@@ -247,6 +341,7 @@ export const App: React.FC = () => {
               value={projectSettings.title}
               onChange={(e) => setProjectSettings({ ...projectSettings, title: e.target.value })}
               className="top-title-input"
+              placeholder="اسم المشروع"
             />
           </div>
         </div>
@@ -261,8 +356,9 @@ export const App: React.FC = () => {
             <a href="/" className="login-link">تسجيل دخول</a>
           )}
 
-          <a href="/" className="btn btn-outline">
-            الموقع التسويقي 🌐
+          <a href="/" className="btn btn-outline" target="_blank" rel="noreferrer">
+            <span>الموقع التسويقي</span>
+            <ExternalLink size={13} />
           </a>
 
           <button
@@ -270,7 +366,8 @@ export const App: React.FC = () => {
             onClick={handleStartRender}
             disabled={isExporting}
           >
-            {isExporting ? 'جاري التجهيز...' : '⚡ تصدير الفيديو (Render)'}
+            <Zap size={15} />
+            <span>{isExporting ? 'جاري التحضير...' : 'تصدير الفيديو (Render)'}</span>
           </button>
         </div>
       </header>
@@ -292,6 +389,8 @@ export const App: React.FC = () => {
               totalDuration={projectSettings.duration}
               clips={clips}
               selectedClipId={selectedClipId}
+              isPlaying={isPlaying}
+              isVideoMuted={isVideoTrackMuted}
               onSelectClip={setSelectedClipId}
               onUpdateClip={handleUpdateClip}
               bgColor={projectSettings.bgColor}
@@ -313,6 +412,7 @@ export const App: React.FC = () => {
             onDeleteClip={handleDeleteClip}
             onSplitClip={handleSplitClip}
             onDuplicateClip={handleDuplicateClip}
+            onToggleTrackMute={handleToggleTrackMute}
           />
         </div>
 

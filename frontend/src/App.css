@@ -1134,3 +1134,180 @@ body {
   display: flex;
   justify-content: flex-end;
 }
+
+/* =========================================================
+   PRO NLE STUDIO EXTENSIONS (Magnetic Snapping, SFX, Toolbar)
+   ========================================================= */
+
+/* Magnetic Snapping Guidelines */
+.snap-guideline {
+  position: absolute;
+  z-index: 45;
+  pointer-events: none;
+}
+
+.snap-guideline.snap-vertical {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.snap-guideline.snap-horizontal {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+/* Canvas Floating Quick Toolbar on Bounding Box */
+.canvas-quick-toolbar {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  background: rgba(17, 20, 29, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 3px 6px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.canvas-quick-toolbar button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.canvas-quick-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Text Alignment Buttons */
+.align-buttons-group {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-align {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  padding: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-align:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.btn-align.active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Audio & SFX Library */
+.audio-sfx-section {
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.sfx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sfx-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.sfx-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sfx-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.sfx-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.sfx-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.sfx-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-preview-sound {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: #38bdf8;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-preview-sound:hover {
+  background: var(--accent);
+  color: #041410;
+  transform: scale(1.1);
+}
+
+.preset-preview.lower-third {
+  background: rgba(15, 23, 42, 0.85);
+  color: #fff;
+  border-right: 3px solid var(--primary);
+  font-size: 0.8rem;
+  border-radius: 4px;
+}
+

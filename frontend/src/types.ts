@@ -20,6 +20,12 @@ export interface TimelineClip {
   color?: string;
   bgColor?: string;
   src?: string;       // رابط الملف من MinIO
+  volume?: number;    // مستوى الصوت من 0 إلى 1
+  filter?: string;    // فلتر لوني (none, cinematic, vintage, grayscale)
+  animation?: string; // حركة دخول (none, fadeIn, zoomIn, slideUp)
+  borderRadius?: number;
+  zIndex?: number;
+  textAlign?: 'right' | 'center' | 'left';
 }
 
 export interface TimelineTrack {
@@ -29,6 +35,7 @@ export interface TimelineTrack {
   icon: string;
   isMuted?: boolean;
   isLocked?: boolean;
+  volume?: number;
 }
 
 export interface ProjectSettings {

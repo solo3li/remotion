@@ -1,5 +1,20 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { TimelineClip, TimelineTrack } from '../types';
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Scissors,
+  Copy,
+  Trash2,
+  ZoomIn,
+  ZoomOut,
+  Volume2,
+  VolumeX,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 
 interface NLETimelineProps {
   currentTime: number;
@@ -15,6 +30,7 @@ interface NLETimelineProps {
   onDeleteClip: (id: string) => void;
   onSplitClip: (id: string, splitTime: number) => void;
   onDuplicateClip: (id: string) => void;
+  onToggleTrackMute?: (trackId: string) => void;
 }
 
 export const NLETimeline: React.FC<NLETimelineProps> = ({
@@ -31,8 +47,9 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
   onDeleteClip,
   onSplitClip,
   onDuplicateClip,
+  onToggleTrackMute,
 }) => {
-  const [zoomLevel, setZoomLevel] = useState<number>(1); // 1 = 100%, 2 = 200%
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [draggingClipId, setDraggingClipId] = useState<string | null>(null);
   const [trimmingEdge, setTrimmingEdge] = useState<'left' | 'right' | null>(null);
   const [dragStartX, setDragStartX] = useState<number>(0);
@@ -40,7 +57,7 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
 
   const rulerRef = useRef<HTMLDivElement>(null);
 
-  // Global mouse move for timeline drag & trimming
+  // Drag & Trim Mouse Move Handlers
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!rulerRef.current || !draggingClipId || !initialClipState) return;
@@ -56,7 +73,6 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
         const newDuration = Math.max(0.2, Math.min(totalDuration - initialClipState.start, initialClipState.duration + deltaSeconds));
         onUpdateClip(draggingClipId, { duration: Number(newDuration.toFixed(2)) });
       } else {
-        // Move entire clip along time
         const newStart = Math.max(0, Math.min(totalDuration - initialClipState.duration, initialClipState.start + deltaSeconds));
         onUpdateClip(draggingClipId, { start: Number(newStart.toFixed(2)) });
       }
@@ -123,11 +139,16 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
       {/* Top Toolbar */}
       <div className="timeline-toolbar">
         <div className="playback-group">
-          <button className="tool-btn" onClick={() => onSeek(0)} title="البداية">⏮</button>
-          <button className={`tool-btn play-btn ${isPlaying ? 'playing' : ''}`} onClick={onTogglePlay}>
-            {isPlaying ? '⏸ إيقاف' : '▶ تشغيل'}
+          <button className="tool-btn" onClick={() => onSeek(0)} title="البداية">
+            <SkipBack size={15} />
           </button>
-          <button className="tool-btn" onClick={() => onSeek(totalDuration)} title="النهاية">⏭</button>
+          <button className={`tool-btn play-btn ${isPlaying ? 'playing' : ''}`} onClick={onTogglePlay}>
+            {isPlaying ? <Pause size={15} /> : <Play size={15} />}
+            <span>{isPlaying ? 'إيقاف' : 'تشغيل'}</span>
+          </button>
+          <button className="tool-btn" onClick={() => onSeek(totalDuration)} title="النهاية">
+            <SkipForward size={15} />
+          </button>
         </div>
 
         <div className="time-indicator">
@@ -141,9 +162,10 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
             className="tool-btn action-btn"
             onClick={handleSplitCurrent}
             disabled={!selectedClip || currentTime <= selectedClip.start || currentTime >= selectedClip.start + selectedClip.duration}
-            title="تقسيم المقطع عند المؤشر الحالي (Split / Blade)"
+            title="تقسيم المقطع عند مكان المؤشر الحالي (Split / Blade)"
           >
-            ✂️ قص
+            <Scissors size={14} />
+            <span>قص</span>
           </button>
           <button
             className="tool-btn action-btn"
@@ -151,7 +173,8 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
             disabled={!selectedClipId}
             title="تكرار المقطع المحدد"
           >
-            📋 مضاعفة
+            <Copy size={14} />
+            <span>مضاعفة</span>
           </button>
           <button
             className="tool-btn action-btn delete-btn"
@@ -159,36 +182,49 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
             disabled={!selectedClipId}
             title="حذف المقطع المحدد"
           >
-            🗑️ حذف
+            <Trash2 size={14} />
+            <span>حذف</span>
           </button>
         </div>
 
         <div className="zoom-controls">
-          <span className="zoom-label">تكبير:</span>
-          <button className="tool-btn zoom-btn" onClick={() => setZoomLevel((z) => Math.max(0.5, z - 0.25))}>−</button>
+          <button className="tool-btn zoom-btn" onClick={() => setZoomLevel((z) => Math.max(0.5, z - 0.25))} title="تصغير">
+            <ZoomOut size={14} />
+          </button>
           <span className="zoom-val">{Math.round(zoomLevel * 100)}%</span>
-          <button className="tool-btn zoom-btn" onClick={() => setZoomLevel((z) => Math.min(3, z + 0.25))}>+</button>
+          <button className="tool-btn zoom-btn" onClick={() => setZoomLevel((z) => Math.min(3, z + 0.25))} title="تكبير">
+            <ZoomIn size={14} />
+          </button>
         </div>
       </div>
 
       {/* Timeline Workspace */}
       <div className="timeline-workspace">
-        {/* Track Headers Sidebar */}
+        {/* Track Headers Column */}
         <div className="track-headers-column">
-          <div className="ruler-header-spacer">المسارات</div>
+          <div className="ruler-header-spacer">المسارات الصوتية والمرئية</div>
           {tracks.map((track) => (
             <div key={track.id} className="track-header-item">
               <span className="track-icon">{track.icon}</span>
               <span className="track-name">{track.name}</span>
+              {track.type === 'audio' && onToggleTrackMute && (
+                <button
+                  className="track-mute-btn"
+                  onClick={() => onToggleTrackMute(track.id)}
+                  title={track.isMuted ? 'إلغاء كتم الصوت' : 'كتم صوت المسار'}
+                >
+                  {track.isMuted ? <VolumeX size={14} color="#ef4444" /> : <Volume2 size={14} color="#10b981" />}
+                </button>
+              )}
             </div>
           ))}
         </div>
 
-        {/* Scrollable Tracks Canvas */}
+        {/* Scrollable Timeline Lanes */}
         <div className="timeline-lanes-scroll">
           {/* Time Ruler */}
           <div className="timeline-ruler-bar" ref={rulerRef} onClick={handleRulerClick}>
-            {/* Playhead */}
+            {/* Playhead Indicator */}
             <div
               className="timeline-playhead"
               style={{ left: `${(currentTime / totalDuration) * 100}%` }}
@@ -197,7 +233,7 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
               <div className="playhead-needle" />
             </div>
 
-            {/* Ruler Ticks */}
+            {/* Time Ticks */}
             {Array.from({ length: Math.ceil(totalDuration) + 1 }).map((_, i) => (
               <div
                 key={i}
@@ -209,7 +245,7 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
             ))}
           </div>
 
-          {/* Track Lanes */}
+          {/* Lanes */}
           <div className="lanes-container">
             {tracks.map((track) => {
               const trackClips = clips.filter((c) => c.trackId === track.id);
@@ -220,6 +256,7 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
                     const isSelected = clip.id === selectedClipId;
                     const leftPct = (clip.start / totalDuration) * 100;
                     const widthPct = (clip.duration / totalDuration) * 100;
+                    const isCurrentlyPlayingThisClip = isPlaying && currentTime >= clip.start && currentTime <= clip.start + clip.duration;
 
                     return (
                       <div
@@ -238,18 +275,19 @@ export const NLETimeline: React.FC<NLETimelineProps> = ({
                           title="سحب لتقصير أو تمديد البداية"
                         />
 
-                        {/* Clip Content */}
+                        {/* Clip Content Box */}
                         <div className="clip-content-box">
                           <span className="clip-title">{clip.title || clip.text || 'مقطع'}</span>
                           <span className="clip-dur">{clip.duration.toFixed(1)}s</span>
 
+                          {/* Dynamic Audio Waveform Pulsing on Playback */}
                           {clip.type === 'audio' && (
-                            <div className="audio-wave-anim">
-                              {Array.from({ length: 24 }).map((_, idx) => (
+                            <div className={`audio-wave-anim ${isCurrentlyPlayingThisClip ? 'active-pulse' : ''}`}>
+                              {Array.from({ length: 28 }).map((_, idx) => (
                                 <span
                                   key={idx}
                                   style={{
-                                    height: `${12 + Math.sin(idx * 0.8) * 10 + (idx % 2) * 5}px`,
+                                    height: `${10 + Math.sin(idx * 0.7 + (isCurrentlyPlayingThisClip ? currentTime * 6 : 0)) * 12 + (idx % 3) * 4}px`,
                                   }}
                                 />
                               ))}
