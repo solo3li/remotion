@@ -11,7 +11,9 @@ from django.views.decorators.csrf import csrf_exempt
 import redis
 import requests
 
-from .models import VideoProject
+import threading
+from .models import VideoProject, Workflow, WorkflowRun
+from .workflow_engine import execute_workflow_run_sync
 
 User = get_user_model()
 
@@ -224,3 +226,156 @@ async def events_stream_view(request, video_id):
 def inngest_handler(request):
     """Inngest SDK endpoint"""
     return JsonResponse({'status': 'ok', 'functions': []})
+
+# =========================================================
+# WORKFLOW ENGINE & LANGGRAPH ENDPOINTS
+# =========================================================
+
+@csrf_exempt
+def workflows_list_create_view(request):
+    """Lists existing workflows or creates/updates a workflow definition"""
+    if request.method == 'GET':
+        workflows = Workflow.objects.all().order_by('-created_at')
+        return JsonResponse({
+            'workflows': [
+                {
+                    'id': str(w.id),
+                    'title': w.title,
+                    'description': w.description,
+                    'graph_data': w.graph_data,
+                    'created_at': w.created_at.isoformat()
+                } for w in workflows
+            ]
+        })
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            wf_id = data.get('id')
+            title = data.get('title', 'مخطط فيديو جديد')
+            description = data.get('description', '')
+            graph_data = data.get('graph_data', {})
+
+            if wf_id:
+                try:
+                    wf = Workflow.objects.get(id=wf_id)
+                    wf.title = title
+                    wf.description = description
+                    wf.graph_data = graph_data
+                    wf.save()
+                except Workflow.DoesNotExist:
+                    wf = Workflow.objects.create(id=wf_id, title=title, description=description, graph_data=graph_data)
+            else:
+                wf = Workflow.objects.create(title=title, description=description, graph_data=graph_data)
+
+            return JsonResponse({
+                'status': 'success',
+                'workflow': {
+                    'id': str(wf.id),
+                    'title': wf.title,
+                    'description': wf.description,
+                    'graph_data': wf.graph_data
+                }
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def workflow_detail_view(request, workflow_id):
+    """Retrieve or delete a single workflow"""
+    try:
+        wf = Workflow.objects.get(id=workflow_id)
+        if request.method == 'GET':
+            return JsonResponse({
+                'id': str(wf.id),
+                'title': wf.title,
+                'description': wf.description,
+                'graph_data': wf.graph_data,
+                'created_at': wf.created_at.isoformat()
+            })
+        elif request.method == 'DELETE':
+            wf.delete()
+            return JsonResponse({'status': 'deleted'})
+    except Workflow.DoesNotExist:
+        return JsonResponse({'error': 'Workflow not found'}, status=404)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def workflow_run_view(request, workflow_id):
+    """Executes a workflow via LangGraph in background and returns run_id"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    try:
+        wf = Workflow.objects.get(id=workflow_id)
+        data = json.loads(request.body) if request.body else {}
+        inputs = data.get('inputs', {})
+
+        run = WorkflowRun.objects.create(
+            workflow=wf,
+            status='PENDING',
+            progress=0,
+            state_data={'inputs': inputs},
+            logs=[f"Run requested for workflow '{wf.title}'"]
+        )
+
+        # Launch LangGraph execution in background thread
+        thread = threading.Thread(target=execute_workflow_run_sync, args=(str(run.id),))
+        thread.daemon = True
+        thread.start()
+
+        return JsonResponse({
+            'run_id': str(run.id),
+            'workflow_id': str(wf.id),
+            'status': 'RUNNING',
+            'stream_url': f"/events/workflow/{run.id}/"
+        })
+    except Workflow.DoesNotExist:
+        return JsonResponse({'error': 'Workflow not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+async def workflow_events_stream_view(request, run_id):
+    """
+    Real-time SSE stream for workflow execution.
+    Subscribes to Redis channel 'workflow:<run_id>'
+    and streams node-by-node state transitions to React Flow.
+    """
+    import asyncio
+    import redis.asyncio as aioredis
+
+    async def event_stream():
+        r = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        pubsub = r.pubsub()
+        channel = f"workflow:{run_id}"
+        await pubsub.subscribe(channel)
+
+        # Initial ping
+        yield f"data: {json.dumps({'status': 'CONNECTED', 'run_id': run_id, 'percent': 0})}\n\n"
+
+        start_time = time.time()
+        timeout_seconds = 180
+
+        while time.time() - start_time < timeout_seconds:
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.5)
+            if message and message.get('type') == 'message':
+                data_str = message['data']
+                yield f"data: {data_str}\n\n"
+                try:
+                    payload = json.loads(data_str)
+                    if payload.get('node_id') == 'GLOBAL_END' or payload.get('status') == 'FAILED':
+                        break
+                except Exception:
+                    pass
+            await asyncio.sleep(0.1)
+
+        await pubsub.unsubscribe(channel)
+        await pubsub.close()
+        await r.close()
+
+    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+    response['Cache-Control'] = 'no-cache'
+    response['X-Accel-Buffering'] = 'no'
+    return response

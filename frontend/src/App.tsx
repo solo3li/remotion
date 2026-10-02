@@ -13,7 +13,9 @@ import {
   Zap,
   Volume2,
   VolumeX,
+  Workflow,
 } from 'lucide-react';
+import { WorkflowBuilder } from './components/workflow/WorkflowBuilder';
 
 export const App: React.FC = () => {
   // Project Global Settings
@@ -108,11 +110,23 @@ export const App: React.FC = () => {
   const [selectedClipId, setSelectedClipId] = useState<string | null>('clip-1');
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [activeStudioMode, setActiveStudioMode] = useState<'nle' | 'workflow'>('nle');
 
   // User Auth & Export State
   const [user, setUser] = useState<{ username: string } | null>(null);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
+
+  const handleLoadGeneratedClips = (newClips: TimelineClip[], newSettings?: Partial<ProjectSettings>) => {
+    setClips(newClips);
+    if (newSettings) {
+      setProjectSettings((prev) => ({ ...prev, ...newSettings }));
+    }
+    if (newClips.length > 0) {
+      setSelectedClipId(newClips[0].id);
+    }
+    setActiveStudioMode('nle');
+  };
 
   // Fetch session cookie
   useEffect(() => {
@@ -331,19 +345,39 @@ export const App: React.FC = () => {
       <header className="nle-top-bar">
         <div className="bar-left">
           <div className="studio-brand">
-            <span className="brand-badge">NLE STUDIO</span>
+            <span className="brand-badge">PRO SUITE</span>
             <span className="brand-name">Revideo Cloud Studio</span>
           </div>
 
-          <div className="project-title-box">
-            <input
-              type="text"
-              value={projectSettings.title}
-              onChange={(e) => setProjectSettings({ ...projectSettings, title: e.target.value })}
-              className="top-title-input"
-              placeholder="اسم المشروع"
-            />
+          {/* Mode Switcher: NLE Timeline Studio vs AI Workflow Builder */}
+          <div className="studio-mode-switcher">
+            <button
+              className={`btn-mode-tab ${activeStudioMode === 'nle' ? 'active' : ''}`}
+              onClick={() => setActiveStudioMode('nle')}
+            >
+              <Film size={14} />
+              <span>محرر التايم لاين (NLE Studio)</span>
+            </button>
+            <button
+              className={`btn-mode-tab ${activeStudioMode === 'workflow' ? 'active' : ''}`}
+              onClick={() => setActiveStudioMode('workflow')}
+            >
+              <Workflow size={14} />
+              <span>مخططات الذكاء (AI Workflows)</span>
+            </button>
           </div>
+
+          {activeStudioMode === 'nle' && (
+            <div className="project-title-box">
+              <input
+                type="text"
+                value={projectSettings.title}
+                onChange={(e) => setProjectSettings({ ...projectSettings, title: e.target.value })}
+                className="top-title-input"
+                placeholder="اسم المشروع"
+              />
+            </div>
+          )}
         </div>
 
         <div className="bar-right">
@@ -361,73 +395,84 @@ export const App: React.FC = () => {
             <ExternalLink size={13} />
           </a>
 
-          <button
-            className="btn btn-primary-render"
-            onClick={handleStartRender}
-            disabled={isExporting}
-          >
-            <Zap size={15} />
-            <span>{isExporting ? 'جاري التحضير...' : 'تصدير الفيديو (Render)'}</span>
-          </button>
+          {activeStudioMode === 'nle' && (
+            <button
+              className="btn btn-primary-render"
+              onClick={handleStartRender}
+              disabled={isExporting}
+            >
+              <Zap size={15} />
+              <span>{isExporting ? 'جاري التحضير...' : 'تصدير الفيديو (Render)'}</span>
+            </button>
+          )}
         </div>
       </header>
 
-      {/* Main Studio 3-Column Layout */}
-      <div className="nle-center-workspace">
-        {/* Left Column: Media & Asset Presets Drawer */}
-        <MediaDrawer
-          onAddClip={handleAddClip}
-          currentTime={currentTime}
+      {/* Conditional Studio View: AI Workflow Builder vs 3-Column NLE Studio */}
+      {activeStudioMode === 'workflow' ? (
+        <WorkflowBuilder
+          onLoadTimelineClips={handleLoadGeneratedClips}
+          onSwitchToStudio={() => setActiveStudioMode('nle')}
         />
+      ) : (
+        /* Main Studio 3-Column Layout */
+        <div className="nle-center-workspace">
+          {/* Left Column: Media & Asset Presets Drawer */}
+          <MediaDrawer
+            onAddClip={handleAddClip}
+            currentTime={currentTime}
+          />
 
-        {/* Center Column: Interactive Canvas & Timeline */}
-        <div className="nle-middle-column">
-          {/* Canvas Section */}
-          <div className="canvas-viewport-wrapper">
-            <InteractiveCanvas
+          {/* Center Column: Interactive Canvas & Timeline */}
+          <div className="nle-middle-column">
+            {/* Canvas Section */}
+            <div className="canvas-viewport-wrapper">
+              <InteractiveCanvas
+                currentTime={currentTime}
+                totalDuration={projectSettings.duration}
+                clips={clips}
+                selectedClipId={selectedClipId}
+                isPlaying={isPlaying}
+                isVideoMuted={isVideoTrackMuted}
+                onSelectClip={setSelectedClipId}
+                onUpdateClip={handleUpdateClip}
+                bgColor={projectSettings.bgColor}
+              />
+            </div>
+
+            {/* Bottom Timeline Section */}
+            <NLETimeline
               currentTime={currentTime}
               totalDuration={projectSettings.duration}
+              tracks={tracks}
               clips={clips}
               selectedClipId={selectedClipId}
               isPlaying={isPlaying}
-              isVideoMuted={isVideoTrackMuted}
+              onTogglePlay={() => setIsPlaying(!isPlaying)}
+              onSeek={(t) => setCurrentTime(t)}
               onSelectClip={setSelectedClipId}
               onUpdateClip={handleUpdateClip}
-              bgColor={projectSettings.bgColor}
+              onDeleteClip={handleDeleteClip}
+              onSplitClip={handleSplitClip}
+              onDuplicateClip={handleDuplicateClip}
+              onToggleTrackMute={handleToggleTrackMute}
             />
           </div>
 
-          {/* Bottom Timeline Section */}
-          <NLETimeline
-            currentTime={currentTime}
-            totalDuration={projectSettings.duration}
-            tracks={tracks}
-            clips={clips}
-            selectedClipId={selectedClipId}
-            isPlaying={isPlaying}
-            onTogglePlay={() => setIsPlaying(!isPlaying)}
-            onSeek={(t) => setCurrentTime(t)}
-            onSelectClip={setSelectedClipId}
+          {/* Right Column: Properties Inspector */}
+          <InspectorPanel
+            selectedClip={selectedClip}
             onUpdateClip={handleUpdateClip}
             onDeleteClip={handleDeleteClip}
-            onSplitClip={handleSplitClip}
             onDuplicateClip={handleDuplicateClip}
-            onToggleTrackMute={handleToggleTrackMute}
+            projectSettings={projectSettings}
+            onUpdateProjectSettings={(updates) =>
+              setProjectSettings((prev) => ({ ...prev, ...updates }))
+            }
           />
         </div>
+      )}
 
-        {/* Right Column: Properties Inspector */}
-        <InspectorPanel
-          selectedClip={selectedClip}
-          onUpdateClip={handleUpdateClip}
-          onDeleteClip={handleDeleteClip}
-          onDuplicateClip={handleDuplicateClip}
-          projectSettings={projectSettings}
-          onUpdateProjectSettings={(updates) =>
-            setProjectSettings((prev) => ({ ...prev, ...updates }))
-          }
-        />
-      </div>
 
       {/* Server-Sent Events Export Modal */}
       {activeVideoId && (
