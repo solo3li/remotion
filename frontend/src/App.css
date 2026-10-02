@@ -1353,13 +1353,16 @@ body {
 /* =========================================================
    AI WORKFLOW STUDIO ROOT & LAYOUT
    ========================================================= */
-.workflow-studio-root {
+.workflow-studio-root,
+.workflow-builder-root {
   display: flex;
   flex-direction: column;
   flex: 1;
+  width: 100%;
   height: calc(100vh - 56px);
   background: #080a0f;
   overflow: hidden;
+  position: relative;
 }
 
 .workflow-top-bar {
@@ -1490,14 +1493,21 @@ body {
   border: 1px solid var(--border-dim);
   padding: 8px 10px;
   border-radius: 8px;
-  cursor: pointer;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
   transition: all 0.15s;
 }
 
+.palette-item:active {
+  cursor: grabbing;
+  opacity: 0.7;
+}
+
 .palette-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateX(-2px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateX(-3px);
 }
 
 .palette-icon {
@@ -1588,8 +1598,17 @@ body {
 /* React Flow Canvas Wrapper */
 .wf-canvas-container {
   flex: 1;
+  width: 100%;
   height: 100%;
+  min-height: 450px;
   position: relative;
+  background: #080a0f;
+  overflow: hidden;
+}
+
+.react-flow {
+  width: 100% !important;
+  height: 100% !important;
   background: #080a0f;
 }
 

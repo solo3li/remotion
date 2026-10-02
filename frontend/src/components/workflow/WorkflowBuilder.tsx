@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -11,11 +11,13 @@ import {
   Edge,
   Connection,
   BackgroundVariant,
+  ReactFlowProvider,
+  useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import { nodeTypes } from './CustomNodes';
-import { ALL_NODES, CATEGORIES, NodeCategory, NodeDefinition } from './nodeCatalog';
+import { ALL_NODES, CATEGORIES, NodeDefinition } from './nodeCatalog';
 import { TimelineClip, ProjectSettings } from '../../types';
 import {
   Play,
@@ -34,12 +36,10 @@ import {
   Film,
   FileVideo,
   Search,
-  Filter,
   LayoutTemplate,
-  Terminal,
-  BookOpen,
-  Share2,
-  Database,
+  Trash2,
+  Grab,
+  Maximize2,
 } from 'lucide-react';
 
 interface WorkflowBuilderProps {
@@ -223,10 +223,13 @@ const templateRagFlow: { nodes: Node[]; edges: Edge[] } = {
   ],
 };
 
-export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
+const WorkflowBuilderInner: React.FC<WorkflowBuilderProps> = ({
   onLoadTimelineClips,
   onSwitchToStudio,
 }) => {
+  const { screenToFlowPosition, fitView } = useReactFlow();
+  const canvasRef = useRef<HTMLDivElement>(null);
+
   const [nodes, setNodes] = useState<Node[]>(templateVideoFlow.nodes);
   const [edges, setEdges] = useState<Edge[]>(templateVideoFlow.edges);
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -241,37 +244,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
   // Search and Category filtering
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Update node data helper
-  const updateNodeData = useCallback((nodeId: string, key: string, value: any) => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === nodeId) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              [key]: value,
-            },
-          };
-        }
-        return node;
-      })
-    );
-  }, []);
-
-  // Wire onChange to node data so inputs within nodes reflect in state
-  useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) => ({
-        ...node,
-        data: {
-          ...node.data,
-          onChange: (key: string, val: any) => updateNodeData(node.id, key, val),
-        },
-      }))
-    );
-  }, [updateNodeData]);
+  // Show quick toast notification
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const onNodesChange = useCallback(
     (changes: any) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -298,6 +277,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     []
   );
 
+  // Initial fit view on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fitView({ padding: 0.2 });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [fitView]);
+
   // Load a Pre-built Template
   const handleLoadTemplate = (templateKey: string) => {
     let t = templateVideoFlow;
@@ -311,7 +298,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
         data: {
           ...node.data,
           status: 'IDLE',
-          onChange: (key: string, val: any) => updateNodeData(node.id, key, val),
         },
       }))
     );
@@ -319,26 +305,86 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     setRunProgress(0);
     setStatusMessage('تم تحميل القالب بنجاح');
     setCompletedResult(null);
+    showToast('✓ تم تحميل القالب بنجاح');
+    setTimeout(() => fitView({ padding: 0.2, duration: 400 }), 100);
   };
 
-  // Add any catalog node to canvas
-  const addNodeToCanvas = (nodeDef: NodeDefinition) => {
+  // Add any catalog node to canvas (supports click or drop)
+  const addNodeToCanvas = (nodeDef: NodeDefinition, customPosition?: { x: number; y: number }) => {
     const id = `node-${nodeDef.type}-${Date.now().toString(36)}`;
+
+    let position = customPosition;
+
+    // If no custom drop position provided (i.e. clicked), calculate visible center
+    if (!position && canvasRef.current) {
+      try {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const centerPoint = screenToFlowPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+        });
+        if (centerPoint && isFinite(centerPoint.x) && isFinite(centerPoint.y)) {
+          position = {
+            x: centerPoint.x + (Math.random() * 80 - 40),
+            y: centerPoint.y + (Math.random() * 80 - 40),
+          };
+        }
+      } catch (err) {
+        console.warn('Error calculating center point:', err);
+      }
+    }
+
+    // Fallback safe position
+    if (!position || !isFinite(position.x) || !isFinite(position.y)) {
+      const offset = (nodes.length * 40) % 250;
+      position = { x: 380 + offset, y: 220 + offset };
+    }
+
     const newNode: Node = {
       id,
       type: nodeDef.type,
-      position: {
-        x: 350 + (Math.random() * 80 - 40),
-        y: 100 + nodes.length * 110,
-      },
+      position,
       data: {
         ...nodeDef.defaultData,
         status: 'IDLE',
-        onChange: (key: string, val: any) => updateNodeData(id, key, val),
       },
     };
 
     setNodes((nds) => [...nds, newNode]);
+    showToast(`✓ تمت إضافة: ${nodeDef.label}`);
+
+    // Center view on nodes smoothly
+    setTimeout(() => {
+      fitView({ duration: 300, padding: 0.2 });
+    }, 60);
+  };
+
+  // HTML5 Drag and Drop handlers
+  const handleDragStart = (event: React.DragEvent, nodeDef: NodeDefinition) => {
+    event.dataTransfer.setData('application/reactflow', JSON.stringify(nodeDef));
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    const rawData = event.dataTransfer.getData('application/reactflow');
+    if (!rawData) return;
+
+    try {
+      const nodeDef: NodeDefinition = JSON.parse(rawData);
+      const dropPosition = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      addNodeToCanvas(nodeDef, dropPosition);
+    } catch (e) {
+      console.warn('Failed to parse dropped node data:', e);
+    }
   };
 
   // Filter catalog nodes by category and search
@@ -382,6 +428,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
       if (data.id) {
         setWorkflowId(data.id);
         setStatusMessage(`تم حفظ المخطط بنجاح (ID: ${data.id.slice(0, 8)}...)`);
+        showToast('✓ تم حفظ المخطط في قاعدة البيانات');
       }
     } catch (err: any) {
       console.error('Failed to save workflow:', err);
@@ -492,6 +539,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
             setIsRunning(false);
             setRunProgress(100);
             setStatusMessage('اكتمل تنفيذ المخطط بالكامل بنجاح! 🎉');
+            showToast('🎉 اكتمل تنفيذ المخطط بنجاح!');
             eventSource.close();
           } else if (status === 'FAILED') {
             setIsRunning(false);
@@ -524,13 +572,49 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
       onLoadTimelineClips(completedResult.clips, { duration, bgColor });
       onSwitchToStudio();
     } else {
-      // Fallback dummy clips if timeline node executed
       onSwitchToStudio();
     }
   };
 
+  // Clear canvas
+  const handleClearCanvas = () => {
+    if (window.confirm('هل تريد مسح مساحة العمل والبدء من جديد؟')) {
+      setNodes([]);
+      setEdges([]);
+      setCompletedResult(null);
+      showToast('تم مسح مساحة العمل');
+    }
+  };
+
   return (
-    <div className="workflow-builder-root" dir="rtl">
+    <div className="workflow-studio-root" dir="rtl">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '70px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(16, 185, 129, 0.95)',
+            color: '#fff',
+            padding: '8px 18px',
+            borderRadius: '24px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            zIndex: 9999,
+            fontSize: '13px',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <Sparkles size={15} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Action Header */}
       <div className="workflow-top-bar">
         <div className="wf-title-section">
@@ -544,7 +628,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
         {/* Templates Selector */}
         <div className="wf-templates-dropdown">
           <LayoutTemplate size={14} />
-          <span>القوالب الجاهزة:</span>
+          <span>القوالب:</span>
           <select
             className="node-select-compact"
             onChange={(e) => handleLoadTemplate(e.target.value)}
@@ -574,12 +658,32 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
         <div className="wf-actions-group">
           <button
             className="btn-wf-save"
+            onClick={() => fitView({ padding: 0.2, duration: 400 })}
+            title="إعادة ضبط الرؤية لمنتصف الشاشة"
+            style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}
+          >
+            <Maximize2 size={13} />
+            <span>توسيط</span>
+          </button>
+
+          <button
+            className="btn-wf-save"
+            onClick={handleClearCanvas}
+            title="مسح الكانفاس والبدء من جديد"
+            style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}
+          >
+            <Trash2 size={13} />
+            <span>مسح</span>
+          </button>
+
+          <button
+            className="btn-wf-save"
             onClick={handleSaveWorkflow}
             disabled={isRunning}
             title="حفظ هيكل المخطط في قاعدة البيانات"
           >
             <Save size={14} />
-            <span>حفظ المخطط</span>
+            <span>حفظ</span>
           </button>
 
           <button
@@ -597,7 +701,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
             title="نقل نتائج المخطط إلى تايم لاين محرر الاستوديو"
           >
             <Film size={14} />
-            <span>فتح في محرر الاستوديو 🎬</span>
+            <span>فتح في الاستوديو 🎬</span>
           </button>
         </div>
       </div>
@@ -605,10 +709,16 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
       {/* Main Canvas + Expanded Node Catalog Sidebar */}
       <div className="workflow-workspace">
         {/* Left Node Palette Sidebar */}
-        <aside className="wf-node-palette" style={{ width: '340px' }}>
-          <div className="palette-header">
-            <Layers size={15} />
-            <span>مكتبة العقد الشاملة ({ALL_NODES.length}+ عقدة)</span>
+        <aside className="wf-node-palette" style={{ width: '340px' }} dir="rtl">
+          <div className="palette-header" style={{ justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Layers size={15} />
+              <span>مكتبة العقد ({ALL_NODES.length}+ عقدة)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#94a3b8' }}>
+              <Grab size={12} />
+              <span>اسحب أو انقر للإضافة</span>
+            </div>
           </div>
 
           {/* Search Box */}
@@ -665,14 +775,21 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
             ))}
           </div>
 
-          {/* Filtered Nodes List */}
+          {/* Filtered Nodes List with Draggable and Clickable behavior */}
           <div className="palette-items-list" style={{ maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
             {filteredCatalog.map((nodeDef) => (
               <div
                 key={nodeDef.type}
                 className="palette-item"
-                style={{ borderRight: `3px solid ${nodeDef.categoryColor}` }}
+                draggable
+                onDragStart={(e) => handleDragStart(e, nodeDef)}
                 onClick={() => addNodeToCanvas(nodeDef)}
+                title="انقر للإضافة مباشرة، أو اسحب وضعها في المكان الذي تريده"
+                style={{
+                  borderRight: `3px solid ${nodeDef.categoryColor}`,
+                  cursor: 'grab',
+                  userSelect: 'none',
+                }}
               >
                 <div
                   className="palette-icon"
@@ -727,8 +844,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
           )}
         </aside>
 
-        {/* Center: React Flow Canvas */}
-        <div className="wf-canvas-container">
+        {/* Center: React Flow Canvas in LTR coordinate space for flawless dragging and positioning */}
+        <div
+          ref={canvasRef}
+          className="wf-canvas-container"
+          dir="ltr"
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          style={{ width: '100%', height: '100%', position: 'relative' }}
+        >
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -736,8 +860,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             nodeTypes={nodeTypes}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
             fitView
             fitViewOptions={{ padding: 0.2 }}
+            style={{ width: '100%', height: '100%' }}
           >
             <Background
               variant={BackgroundVariant.Dots}
@@ -755,5 +882,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
         </div>
       </div>
     </div>
+  );
+};
+
+export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = (props) => {
+  return (
+    <ReactFlowProvider>
+      <WorkflowBuilderInner {...props} />
+    </ReactFlowProvider>
   );
 };

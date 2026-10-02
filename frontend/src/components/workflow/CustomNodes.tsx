@@ -1,5 +1,5 @@
 import React from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
 import {
   Zap,
   Bot,
@@ -105,11 +105,17 @@ export const renderStatusBadge = (status?: string) => {
 };
 
 // 1. TRIGGER / INPUT NODE
-export const TriggerNode: React.FC<NodeProps> = ({ data, selected }) => {
+export const TriggerNode: React.FC<NodeProps> = ({ id, data, selected }) => {
   const status = (data.status as string) || 'IDLE';
+  const { updateNodeData } = useReactFlow();
+
+  const handleFieldChange = (key: string, val: any) => {
+    updateNodeData(id, { [key]: val });
+    if (data?.onChange) (data.onChange as any)(key, val);
+  };
 
   return (
-    <div className={`flow-node trigger-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`}>
+    <div className={`flow-node trigger-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`} dir="rtl">
       <div className="node-header">
         <div className="node-title-group">
           <span className="node-icon trigger-icon">
@@ -130,9 +136,7 @@ export const TriggerNode: React.FC<NodeProps> = ({ data, selected }) => {
             rows={2}
             className="node-textarea"
             value={String(data.prompt || '')}
-            onChange={(e) => {
-              if (data.onChange) (data.onChange as any)('prompt', e.target.value);
-            }}
+            onChange={(e) => handleFieldChange('prompt', e.target.value)}
             placeholder="مثال: إعلان ترويجي لمتجر إلكتروني مع خصم 50%..."
           />
         </div>
@@ -145,10 +149,8 @@ export const TriggerNode: React.FC<NodeProps> = ({ data, selected }) => {
               min={2}
               max={30}
               className="node-input"
-              value={Number(data.duration || 6)}
-              onChange={(e) => {
-                if (data.onChange) (data.onChange as any)('duration', Number(e.target.value));
-              }}
+              value={Number(data.duration || 5)}
+              onChange={(e) => handleFieldChange('duration', Number(e.target.value))}
             />
           </div>
           <div className="node-field-half">
@@ -157,9 +159,7 @@ export const TriggerNode: React.FC<NodeProps> = ({ data, selected }) => {
               type="color"
               className="node-color-input"
               value={String(data.bgColor || '#080a0f')}
-              onChange={(e) => {
-                if (data.onChange) (data.onChange as any)('bgColor', e.target.value);
-              }}
+              onChange={(e) => handleFieldChange('bgColor', e.target.value)}
             />
           </div>
         </div>
@@ -171,11 +171,17 @@ export const TriggerNode: React.FC<NodeProps> = ({ data, selected }) => {
 };
 
 // 2. LLM AGENT NODE (LangGraph Intelligence)
-export const LlmAgentNode: React.FC<NodeProps> = ({ data, selected }) => {
+export const LlmAgentNode: React.FC<NodeProps> = ({ id, data, selected }) => {
   const status = (data.status as string) || 'IDLE';
+  const { updateNodeData } = useReactFlow();
+
+  const handleFieldChange = (key: string, val: any) => {
+    updateNodeData(id, { [key]: val });
+    if (data?.onChange) (data.onChange as any)(key, val);
+  };
 
   return (
-    <div className={`flow-node llm-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`}>
+    <div className={`flow-node llm-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`} dir="rtl">
       <Handle type="target" position={Position.Top} className="custom-handle handle-target" />
 
       <div className="node-header">
@@ -197,9 +203,7 @@ export const LlmAgentNode: React.FC<NodeProps> = ({ data, selected }) => {
           <select
             className="node-select"
             value={String(data.model || 'gemini-1.5-flash')}
-            onChange={(e) => {
-              if (data.onChange) (data.onChange as any)('model', e.target.value);
-            }}
+            onChange={(e) => handleFieldChange('model', e.target.value)}
           >
             <option value="gemini-1.5-flash">Google Gemini 1.5 Flash (فائق السرعة)</option>
             <option value="gemini-1.5-pro">Google Gemini 1.5 Pro (إبداعي دقيق)</option>
@@ -230,11 +234,17 @@ export const LlmAgentNode: React.FC<NodeProps> = ({ data, selected }) => {
 };
 
 // 3. TTS VOICEOVER NODE
-export const TtsVoiceNode: React.FC<NodeProps> = ({ data, selected }) => {
+export const TtsVoiceNode: React.FC<NodeProps> = ({ id, data, selected }) => {
   const status = (data.status as string) || 'IDLE';
+  const { updateNodeData } = useReactFlow();
+
+  const handleFieldChange = (key: string, val: any) => {
+    updateNodeData(id, { [key]: val });
+    if (data?.onChange) (data.onChange as any)(key, val);
+  };
 
   return (
-    <div className={`flow-node tts-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`}>
+    <div className={`flow-node tts-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`} dir="rtl">
       <Handle type="target" position={Position.Top} className="custom-handle handle-target" />
 
       <div className="node-header">
@@ -256,9 +266,7 @@ export const TtsVoiceNode: React.FC<NodeProps> = ({ data, selected }) => {
           <select
             className="node-select"
             value={String(data.voiceStyle || 'حماسي إعلاني')}
-            onChange={(e) => {
-              if (data.onChange) (data.onChange as any)('voiceStyle', e.target.value);
-            }}
+            onChange={(e) => handleFieldChange('voiceStyle', e.target.value)}
           >
             <option value="حماسي إعلاني">حماسي إعلاني عالي الطاقة (Marketing)</option>
             <option value="وثائقي هادئ">وثائقي هادئ ورزين (Documentary)</option>
@@ -284,11 +292,11 @@ export const TtsVoiceNode: React.FC<NodeProps> = ({ data, selected }) => {
 };
 
 // 4. REVIDEO TIMELINE NODE
-export const RevideoTimelineNode: React.FC<NodeProps> = ({ data, selected }) => {
+export const RevideoTimelineNode: React.FC<NodeProps> = ({ id, data, selected }) => {
   const status = (data.status as string) || 'IDLE';
 
   return (
-    <div className={`flow-node timeline-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`}>
+    <div className={`flow-node timeline-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`} dir="rtl">
       <Handle type="target" position={Position.Top} className="custom-handle handle-target" />
 
       <div className="node-header">
@@ -328,11 +336,11 @@ export const RevideoTimelineNode: React.FC<NodeProps> = ({ data, selected }) => 
 };
 
 // 5. RENDER / EXPORT NODE
-export const RenderExportNode: React.FC<NodeProps> = ({ data, selected }) => {
+export const RenderExportNode: React.FC<NodeProps> = ({ id, data, selected }) => {
   const status = (data.status as string) || 'IDLE';
 
   return (
-    <div className={`flow-node render-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`}>
+    <div className={`flow-node render-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`} dir="rtl">
       <Handle type="target" position={Position.Top} className="custom-handle handle-target" />
 
       <div className="node-header">
@@ -383,6 +391,12 @@ export const RenderExportNode: React.FC<NodeProps> = ({ data, selected }) => {
 export const UniversalNode: React.FC<NodeProps> = ({ id, type, data, selected }) => {
   const status = (data.status as string) || 'IDLE';
   const meta: NodeDefinition | undefined = ALL_NODES.find((n) => n.type === type);
+  const { updateNodeData } = useReactFlow();
+
+  const handleFieldChange = (key: string, val: any) => {
+    updateNodeData(id, { [key]: val });
+    if (data?.onChange) (data.onChange as any)(key, val);
+  };
 
   const IconComp = meta?.icon && ICON_MAP[meta.icon] ? ICON_MAP[meta.icon] : Zap;
   const categoryColor = meta?.categoryColor || '#38bdf8';
@@ -392,6 +406,7 @@ export const UniversalNode: React.FC<NodeProps> = ({ id, type, data, selected })
     <div
       className={`flow-node universal-node ${selected ? 'selected' : ''} ${status.toLowerCase()}`}
       style={{ borderTop: `3px solid ${categoryColor}` }}
+      dir="rtl"
     >
       {meta?.hasInput !== false && (
         <Handle type="target" position={Position.Top} className="custom-handle handle-target" />
@@ -434,9 +449,7 @@ export const UniversalNode: React.FC<NodeProps> = ({ id, type, data, selected })
               className="node-input"
               value={String(data.query || data.searchQuery || '')}
               placeholder="مثال: آخر أخبار الذكاء الاصطناعي اليوم..."
-              onChange={(e) => {
-                if (data.onChange) (data.onChange as any)('query', e.target.value);
-              }}
+              onChange={(e) => handleFieldChange('query', e.target.value)}
             />
           </div>
         )}
@@ -449,9 +462,7 @@ export const UniversalNode: React.FC<NodeProps> = ({ id, type, data, selected })
               className="node-input"
               value={String(data.prompt || '')}
               placeholder="مثال: خلفية مستقبلية نيون لسيارة رياضية..."
-              onChange={(e) => {
-                if (data.onChange) (data.onChange as any)('prompt', e.target.value);
-              }}
+              onChange={(e) => handleFieldChange('prompt', e.target.value)}
             />
           </div>
         )}
@@ -464,9 +475,7 @@ export const UniversalNode: React.FC<NodeProps> = ({ id, type, data, selected })
                 type="text"
                 className="node-input"
                 value={String(data.conditionKey || 'platform')}
-                onChange={(e) => {
-                  if (data.onChange) (data.onChange as any)('conditionKey', e.target.value);
-                }}
+                onChange={(e) => handleFieldChange('conditionKey', e.target.value)}
               />
             </div>
             <div className="node-field-half">
@@ -475,9 +484,7 @@ export const UniversalNode: React.FC<NodeProps> = ({ id, type, data, selected })
                 type="text"
                 className="node-input"
                 value={String(data.conditionValue || 'tiktok')}
-                onChange={(e) => {
-                  if (data.onChange) (data.onChange as any)('conditionValue', e.target.value);
-                }}
+                onChange={(e) => handleFieldChange('conditionValue', e.target.value)}
               />
             </div>
           </div>
@@ -489,9 +496,7 @@ export const UniversalNode: React.FC<NodeProps> = ({ id, type, data, selected })
             <select
               className="node-select"
               value={String(data.channelType || 'telegram')}
-              onChange={(e) => {
-                if (data.onChange) (data.onChange as any)('channelType', e.target.value);
-              }}
+              onChange={(e) => handleFieldChange('channelType', e.target.value)}
             >
               <option value="telegram">Telegram Bot</option>
               <option value="discord">Discord Webhook</option>
@@ -508,9 +513,7 @@ export const UniversalNode: React.FC<NodeProps> = ({ id, type, data, selected })
               className="node-textarea"
               style={{ fontFamily: 'monospace', fontSize: '11px', direction: 'ltr' }}
               value={String(data.codeSnippet || '# Python expression\nresult = state.get("prompt", "").upper()')}
-              onChange={(e) => {
-                if (data.onChange) (data.onChange as any)('codeSnippet', e.target.value);
-              }}
+              onChange={(e) => handleFieldChange('codeSnippet', e.target.value)}
             />
           </div>
         )}
@@ -546,3 +549,5 @@ export const nodeTypes: Record<string, React.FC<NodeProps>> = {
     return acc;
   }, {} as Record<string, React.FC<NodeProps>>),
 };
+
+export const customNodeTypes = nodeTypes;
