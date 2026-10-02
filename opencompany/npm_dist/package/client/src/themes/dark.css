@@ -1,0 +1,142 @@
+/* ============================================================================
+ * themes/dark.css — dark theme new-contract tokens.
+ *
+ * Scoped to BOTH `.dark` (so existing Tailwind `dark:` variants and the
+ * legacy `<html class="dark">` toggle continue to work) AND
+ * `:root[data-theme="dark"]` (the explicit theme name).
+ *
+ * Source palette: neutral slate dark — the light grey-blue "paper" family
+ * inverted (NOT Solarized teal) + Dracula vibrant accents kept as the
+ * personality layer. Matches the OpenCompany Design System
+ * (tokens/colors.css `.dark`) and the `darkColors` base pack in
+ * client/src/styles/theme.ts.
+ *
+ * Only surfaces / foreground / borders / shadcn semantic tokens are set
+ * here; the Dracula raw accents and node / action role tokens are
+ * inherited unchanged from light.css :root (identical in dark).
+ * ============================================================================ */
+
+.dark,
+:root[data-theme="dark"] {
+  /* Surfaces — neutral slate */
+  --bg-app: #0d0f13;          /* neutral near-black slate */
+  --bg-panel: #15171c;        /* one step up — toolbar/sidebar/palette */
+  --bg-canvas: #0d0f13;
+  --bg-elevated: #1b1e25;     /* cards, inputs-on-panel */
+  --bg-input: #15171c;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-active: rgba(255, 255, 255, 0.08);
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Borders */
+  --border-default: #2b2f37;  /* neutral hairline */
+  --border-strong: #3c424c;
+  --border-focus: #3b82f6;    /* standard blue */
+  --ornament-frame: none;
+
+  /* Foreground — near-white neutral over slate */
+  --fg-default: #e8eaed;
+  --fg-muted: #9aa1ac;        /* neutral slate grey */
+  --fg-faint: #6b7280;
+  --fg-on-accent: #ffffff;
+  --fg-on-success: #0d0f13;
+  --fg-on-danger: #ffffff;
+  --fg-on-warning: #0d0f13;
+
+  /* Type — same as light (system stack) */
+  --font-display: 'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  --type-scale-base: 14px;
+  --type-tracking-display: 0;
+  --type-uppercase: none;
+
+  /* Geometry — same scale as light */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --dur-fast: 90ms;
+  --dur-default: 180ms;
+  --dur-slow: 320ms;
+  --ease-default: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease-emphasis: cubic-bezier(0.6, -0.05, 0.3, 1.4);
+  --motion-style: smooth;
+  --sound-pack: terminal;
+
+  /* Cursor + scrollbar */
+  --cursor-default: auto;
+  --cursor-pointer: pointer;
+  --scrollbar-track: #15171c;
+  --scrollbar-thumb: #3c424c;
+
+  /* ── shadcn semantic tokens (dark) — neutral slate surfaces. Overrides
+   * the light defaults from light.css :root. Dracula + node + action role
+   * tokens are inherited unchanged from light.css (identical in dark). ── */
+  --background: #0d0f13;              /* bg-app */
+  --foreground: #e8eaed;              /* fg-default */
+  --card: #1b1e25;                    /* elevated surface */
+  --card-foreground: #e8eaed;
+  --popover: #1b1e25;
+  --popover-foreground: #e8eaed;
+  --surface-card: #1b1e25;
+  --primary: #3b82f6;                 /* standard blue */
+  --primary-foreground: #ffffff;
+  --secondary: #1b1e25;
+  --secondary-foreground: #e8eaed;
+  --muted: #1b1e25;
+  --muted-foreground: #9aa1ac;
+  --accent: #8b5cf6;                  /* standard violet */
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --info: #38bdf8;
+  --border: #2b2f37;
+  --input: #2b2f37;
+  --ring: #3b82f6;
+
+  /* In dark mode the Dracula hues are bright enough to be the text colour
+   * directly — ink aliases resolve to the raw accents. */
+  --action-run-ink:    var(--dracula-green);
+  --action-stop-ink:   var(--dracula-pink);
+  --action-save-ink:   var(--dracula-cyan);
+  --action-config-ink: var(--dracula-orange);
+  --action-secret-ink: var(--dracula-yellow);
+  --action-tools-ink:  var(--dracula-purple);
+
+  /* Shadows — deeper on dark surfaces (overrides base.css). */
+  --shadow-card: 0 4px 12px rgb(0 0 0 / 0.3);
+  --shadow-card-hover: 0 6px 18px rgb(0 0 0 / 0.4);
+  --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.55);
+
+  color-scheme: dark;
+}
+
+/* Code & syntax tokens (code editor / JSON output / variable tree) */
+.dark,
+:root[data-theme="dark"] {
+  --code-bg: #0d1117;
+  --code-gutter-bg: #15171c;
+  --code-gutter-fg: #545b66;
+  --code-line-active: rgba(255, 255, 255, 0.05);
+  --code-selection: rgba(139, 233, 253, 0.20);
+  --code-caret: var(--accent);
+  --code-border: var(--border-default);
+
+  /* Dracula syntax palette */
+  --code-text: #f8f8f2;
+  --code-comment: #6272a4;
+  --code-keyword: #ff79c6;          /* pink */
+  --code-string: #f1fa8c;           /* yellow */
+  --code-number: #bd93f9;           /* purple */
+  --code-boolean: #bd93f9;
+  --code-function: #50fa7b;         /* green */
+  --code-property: #8be9fd;         /* cyan */
+  --code-operator: #ff79c6;         /* pink */
+  --code-punctuation: #f8f8f2;
+  --code-tag: #8be9fd;              /* cyan */
+}

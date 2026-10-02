@@ -1,0 +1,118 @@
+{
+  "version": "2026.02",
+  "last_updated": "2026-02-22",
+  "_source": "https://developers.google.com/workspace",
+
+  "oauth": {
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "revoke_uri": "https://oauth2.googleapis.com/revoke",
+    "userinfo_uri": "https://www.googleapis.com/oauth2/v2/userinfo",
+    "google_callback_path": "/api/google/callback",
+    "twitter_callback_path": "/api/twitter/callback"
+  },
+
+  "services": {
+    "gmail": {
+      "name": "Gmail API",
+      "version": "v1",
+      "base_url": "https://gmail.googleapis.com",
+      "discovery_url": "https://gmail.googleapis.com/$discovery/rest?version=v1",
+      "documentation": "https://developers.google.com/gmail/api/reference/rest"
+    },
+    "calendar": {
+      "name": "Google Calendar API",
+      "version": "v3",
+      "base_url": "https://www.googleapis.com/calendar/v3",
+      "discovery_url": "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
+      "documentation": "https://developers.google.com/workspace/calendar/api/v3/reference"
+    },
+    "drive": {
+      "name": "Google Drive API",
+      "version": "v3",
+      "base_url": "https://www.googleapis.com/drive/v3",
+      "discovery_url": "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest",
+      "documentation": "https://developers.google.com/drive/api/v3/reference"
+    },
+    "sheets": {
+      "name": "Google Sheets API",
+      "version": "v4",
+      "base_url": "https://sheets.googleapis.com/v4",
+      "discovery_url": "https://sheets.googleapis.com/$discovery/rest?version=v4",
+      "documentation": "https://developers.google.com/workspace/sheets/api/reference/rest"
+    },
+    "tasks": {
+      "name": "Google Tasks API",
+      "version": "v1",
+      "base_url": "https://tasks.googleapis.com/tasks/v1",
+      "discovery_url": "https://www.googleapis.com/discovery/v1/apis/tasks/v1/rest",
+      "documentation": "https://developers.google.com/workspace/tasks/reference/rest"
+    },
+    "people": {
+      "name": "Google People API (Contacts)",
+      "version": "v1",
+      "base_url": "https://people.googleapis.com/v1",
+      "discovery_url": "https://people.googleapis.com/$discovery/rest?version=v1",
+      "documentation": "https://developers.google.com/people/api/rest"
+    }
+  },
+
+  "scopes": {
+    "userinfo": [
+      "openid",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ],
+    "gmail": [
+      "https://www.googleapis.com/auth/gmail.send",
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "calendar": [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/calendar.events"
+    ],
+    "drive": [
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/drive.file"
+    ],
+    "sheets": [
+      "https://www.googleapis.com/auth/spreadsheets"
+    ],
+    "tasks": [
+      "https://www.googleapis.com/auth/tasks"
+    ],
+    "contacts": [
+      "https://www.googleapis.com/auth/contacts",
+      "https://www.googleapis.com/auth/contacts.readonly"
+    ]
+  },
+
+  "rate_limits": {
+    "_note": "All Google Workspace APIs are free with rate limits",
+    "gmail": {
+      "quota_units_per_second": 250,
+      "daily_limit": "Unlimited (within quota)"
+    },
+    "calendar": {
+      "requests_per_minute": 1000000,
+      "requests_per_day": "Unlimited"
+    },
+    "drive": {
+      "requests_per_100_seconds": 20000,
+      "requests_per_day": 1000000000
+    },
+    "sheets": {
+      "read_requests_per_minute": 300,
+      "write_requests_per_minute": 300
+    },
+    "tasks": {
+      "requests_per_minute": 150000,
+      "requests_per_day": 50000
+    },
+    "people": {
+      "requests_per_minute": 90,
+      "contacts_per_page": 1000
+    }
+  }
+}

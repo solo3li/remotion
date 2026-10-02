@@ -1,0 +1,1444 @@
+{
+  "id": "workflow-1770193554285-u4c3iyjm0",
+  "name": "Test",
+  "nodes": [
+    {
+      "id": "masterSkill-1769755203568",
+      "type": "masterSkill",
+      "position": {
+        "x": 1800,
+        "y": 180
+      },
+      "data": {
+        "label": "Master Skill"
+      },
+      "width": 112,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1800,
+        "y": 180
+      },
+      "dragging": false
+    },
+    {
+      "id": "chatTrigger-1769755237666",
+      "type": "chatTrigger",
+      "position": {
+        "x": 980,
+        "y": 160
+      },
+      "data": {
+        "label": "Chat Trigger"
+      },
+      "width": 67,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 980,
+        "y": 160
+      },
+      "dragging": true
+    },
+    {
+      "id": "duckduckgoSearch-1769755286327",
+      "type": "duckduckgoSearch",
+      "position": {
+        "x": 1840,
+        "y": 880
+      },
+      "data": {
+        "label": "DuckDuckGo"
+      },
+      "width": 91,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1840,
+        "y": 880
+      },
+      "dragging": true
+    },
+    {
+      "id": "httpRequest-1769755308753",
+      "type": "httpRequest",
+      "position": {
+        "x": 1700,
+        "y": 880
+      },
+      "data": {
+        "label": "HTTP Request"
+      },
+      "width": 76,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1700,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "batteryMonitor-1769755671312",
+      "type": "batteryMonitor",
+      "position": {
+        "x": 880,
+        "y": 880
+      },
+      "data": {
+        "label": "Battery Monitor"
+      },
+      "width": 87,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 880,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "appLauncher-1769755673740",
+      "type": "appLauncher",
+      "position": {
+        "x": 1000,
+        "y": 880
+      },
+      "data": {
+        "label": "App Launcher"
+      },
+      "width": 75,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1000,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "appList-1769755676665",
+      "type": "appList",
+      "position": {
+        "x": 1320,
+        "y": 880
+      },
+      "data": {
+        "label": "App List"
+      },
+      "width": 60,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1320,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "simpleMemory-1769876597527",
+      "type": "simpleMemory",
+      "position": {
+        "x": 1700,
+        "y": 180
+      },
+      "data": {
+        "label": "Simple Memory"
+      },
+      "width": 87,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1700,
+        "y": 180
+      },
+      "dragging": true
+    },
+    {
+      "id": "location-1769884704270",
+      "type": "location",
+      "position": {
+        "x": 800,
+        "y": 880
+      },
+      "data": {
+        "label": "Location"
+      },
+      "width": 60,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 800,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "systemInfo-1769884739936",
+      "type": "systemInfo",
+      "position": {
+        "x": 1220,
+        "y": 880
+      },
+      "data": {
+        "label": "System Info"
+      },
+      "width": 64,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1220,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "deviceStateAutomation-1769884748460",
+      "type": "deviceStateAutomation",
+      "position": {
+        "x": 1100,
+        "y": 880
+      },
+      "data": {
+        "label": "Device State"
+      },
+      "width": 67,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1100,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "pythonExecutor-1769889650412",
+      "type": "pythonExecutor",
+      "position": {
+        "x": 2220,
+        "y": 880
+      },
+      "data": {
+        "label": "Python Executor"
+      },
+      "width": 89,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2220,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "javascriptExecutor-1769889652348",
+      "type": "javascriptExecutor",
+      "position": {
+        "x": 2360,
+        "y": 880
+      },
+      "data": {
+        "label": "JavaScript Executor"
+      },
+      "width": 105,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2360,
+        "y": 880
+      },
+      "dragging": true
+    },
+    {
+      "id": "whatsappReceive-1769893112838",
+      "type": "whatsappReceive",
+      "position": {
+        "x": 960,
+        "y": 20
+      },
+      "data": {
+        "label": "WhatsApp Receive"
+      },
+      "width": 101,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 960,
+        "y": 20
+      },
+      "dragging": false
+    },
+    {
+      "id": "socialReceive-1770042669065",
+      "type": "socialReceive",
+      "position": {
+        "x": 1280,
+        "y": -80
+      },
+      "data": {
+        "label": "Social Receive"
+      },
+      "width": 260,
+      "height": 160,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1280,
+        "y": -80
+      },
+      "dragging": false
+    },
+    {
+      "id": "whatsappSend-1770051996917",
+      "type": "whatsappSend",
+      "position": {
+        "x": 2860,
+        "y": 20
+      },
+      "data": {
+        "label": "WhatsApp Send"
+      },
+      "width": 87,
+      "height": 82,
+      "selected": true,
+      "positionAbsolute": {
+        "x": 2860,
+        "y": 20
+      },
+      "dragging": true
+    },
+    {
+      "id": "chatAgent-1770060581808",
+      "type": "chatAgent",
+      "position": {
+        "x": 1880,
+        "y": -80
+      },
+      "data": {
+        "label": "Zeenie"
+      },
+      "width": 260,
+      "height": 160,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1880,
+        "y": -80
+      },
+      "dragging": false
+    },
+    {
+      "id": "gmaps_locations-1770070846926",
+      "type": "gmaps_locations",
+      "position": {
+        "x": 3240,
+        "y": 880
+      },
+      "data": {
+        "label": "GMaps Locations"
+      },
+      "width": 93,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 3240,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "gmaps_nearby_places-1770070848430",
+      "type": "gmaps_nearby_places",
+      "position": {
+        "x": 3340,
+        "y": 880
+      },
+      "data": {
+        "label": "GMaps Nearby Places"
+      },
+      "width": 118,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 3340,
+        "y": 880
+      },
+      "dragging": true
+    },
+    {
+      "id": "coding_agent-1770070861999",
+      "type": "coding_agent",
+      "position": {
+        "x": 2020,
+        "y": 520
+      },
+      "data": {
+        "label": "Coding Agent"
+      },
+      "width": 260,
+      "height": 160,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2020,
+        "y": 520
+      },
+      "dragging": false
+    },
+    {
+      "id": "web_agent-1770070863433",
+      "type": "web_agent",
+      "position": {
+        "x": 1540,
+        "y": 520
+      },
+      "data": {
+        "label": "Web Control Agent"
+      },
+      "width": 260,
+      "height": 160,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1540,
+        "y": 520
+      },
+      "dragging": true
+    },
+    {
+      "id": "task_agent-1770070864827",
+      "type": "task_agent",
+      "position": {
+        "x": 2580,
+        "y": 520
+      },
+      "data": {
+        "label": "Task Management Agent"
+      },
+      "width": 260,
+      "height": 160,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2580,
+        "y": 520
+      },
+      "dragging": false
+    },
+    {
+      "id": "socialSend-1770073309846",
+      "type": "socialSend",
+      "position": {
+        "x": 2400,
+        "y": -40
+      },
+      "data": {
+        "label": "Social Send"
+      },
+      "width": 260,
+      "height": 160,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2400,
+        "y": -40
+      },
+      "dragging": false
+    },
+    {
+      "id": "whatsappDb-1770080085316",
+      "type": "whatsappDb",
+      "position": {
+        "x": 3060,
+        "y": 880
+      },
+      "data": {
+        "label": "WhatsApp DB"
+      },
+      "width": 76,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 3060,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "android_agent-1770080279045",
+      "type": "android_agent",
+      "position": {
+        "x": 1000,
+        "y": 520
+      },
+      "data": {
+        "label": "Android Control Agent"
+      },
+      "width": 260,
+      "height": 160,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1000,
+        "y": 520
+      },
+      "dragging": true
+    },
+    {
+      "id": "masterSkill-1770080471262",
+      "type": "masterSkill",
+      "position": {
+        "x": 700,
+        "y": 880
+      },
+      "data": {
+        "label": "Master Skill 1"
+      },
+      "width": 71,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 700,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "masterSkill-1770193690331",
+      "type": "masterSkill",
+      "position": {
+        "x": 1940,
+        "y": 180
+      },
+      "data": {
+        "label": "Master Skill 2"
+      },
+      "width": 73,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1940,
+        "y": 180
+      },
+      "dragging": false
+    },
+    {
+      "id": "masterSkill-1770193844078",
+      "type": "masterSkill",
+      "position": {
+        "x": 1500,
+        "y": 880
+      },
+      "data": {
+        "label": "Master Skill 3"
+      },
+      "width": 73,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1500,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "masterSkill-1770193849164",
+      "type": "masterSkill",
+      "position": {
+        "x": 2000,
+        "y": 880
+      },
+      "data": {
+        "label": "Master Skill 4"
+      },
+      "width": 73,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2000,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "simpleMemory-1770194610205",
+      "type": "simpleMemory",
+      "position": {
+        "x": 760,
+        "y": 660
+      },
+      "data": {
+        "label": "Simple Memory 1"
+      },
+      "width": 95,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 760,
+        "y": 660
+      },
+      "dragging": true
+    },
+    {
+      "id": "simpleMemory-1770194632219",
+      "type": "simpleMemory",
+      "position": {
+        "x": 1400,
+        "y": 660
+      },
+      "data": {
+        "label": "Simple Memory 2"
+      },
+      "width": 97,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1400,
+        "y": 660
+      },
+      "dragging": false
+    },
+    {
+      "id": "simpleMemory-1770194967215",
+      "type": "simpleMemory",
+      "position": {
+        "x": 1900,
+        "y": 680
+      },
+      "data": {
+        "label": "Simple Memory 3"
+      },
+      "width": 97,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1900,
+        "y": 680
+      },
+      "dragging": true
+    },
+    {
+      "id": "console-1770195247780",
+      "type": "console",
+      "position": {
+        "x": 2220,
+        "y": 160
+      },
+      "data": {
+        "label": "Console 1"
+      },
+      "width": 60,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2220,
+        "y": 160
+      },
+      "dragging": true
+    },
+    {
+      "id": "console-1770195249519",
+      "type": "console",
+      "position": {
+        "x": 1320,
+        "y": 560
+      },
+      "data": {
+        "label": "Console 2"
+      },
+      "width": 60,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1320,
+        "y": 560
+      },
+      "dragging": false
+    },
+    {
+      "id": "console-1770195251903",
+      "type": "console",
+      "position": {
+        "x": 1860,
+        "y": 540
+      },
+      "data": {
+        "label": "Console 3"
+      },
+      "width": 60,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1860,
+        "y": 540
+      },
+      "dragging": false
+    },
+    {
+      "id": "console-1770195252563",
+      "type": "console",
+      "position": {
+        "x": 2320,
+        "y": 540
+      },
+      "data": {
+        "label": "Console 4"
+      },
+      "width": 60,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2320,
+        "y": 540
+      },
+      "dragging": false
+    },
+    {
+      "id": "console-1770213610482",
+      "type": "console",
+      "position": {
+        "x": 2880,
+        "y": 440
+      },
+      "data": {
+        "label": "Console"
+      },
+      "width": 60,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2880,
+        "y": 440
+      },
+      "dragging": false
+    },
+    {
+      "id": "masterSkill-1770213648261",
+      "type": "masterSkill",
+      "position": {
+        "x": 2560,
+        "y": 880
+      },
+      "data": {
+        "label": "Master Skill"
+      },
+      "width": 63,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2560,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "simpleMemory-1770213659809",
+      "type": "simpleMemory",
+      "position": {
+        "x": 2440,
+        "y": 660
+      },
+      "data": {
+        "label": "Simple Memory 4"
+      },
+      "width": 97,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2440,
+        "y": 660
+      },
+      "dragging": false
+    },
+    {
+      "id": "social_agent-1770213991252",
+      "type": "social_agent",
+      "position": {
+        "x": 3020,
+        "y": 520
+      },
+      "data": {
+        "label": "Social Media Agent"
+      },
+      "width": 260,
+      "height": 160,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 3020,
+        "y": 520
+      },
+      "dragging": false
+    },
+    {
+      "id": "whatsappSend-1770214044603",
+      "type": "whatsappSend",
+      "position": {
+        "x": 3140,
+        "y": 880
+      },
+      "data": {
+        "label": "WhatsApp Send 1"
+      },
+      "width": 95,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 3140,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "masterSkill-1770214062703",
+      "type": "masterSkill",
+      "position": {
+        "x": 2900,
+        "y": 880
+      },
+      "data": {
+        "label": "Master Skill 5"
+      },
+      "width": 73,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2900,
+        "y": 880
+      },
+      "dragging": false
+    },
+    {
+      "id": "simpleMemory-1770214068738",
+      "type": "simpleMemory",
+      "position": {
+        "x": 2820,
+        "y": 720
+      },
+      "data": {
+        "label": "Simple Memory 5"
+      },
+      "width": 97,
+      "height": 82,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2820,
+        "y": 720
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "whatsappReceive-1769893112838",
+      "sourceHandle": "output-main",
+      "target": "socialReceive-1770042669065",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-whatsappReceive-1769893112838output-main-socialReceive-1770042669065input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "masterSkill-1769755203568",
+      "sourceHandle": "output-main",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-skill",
+      "id": "reactflow__edge-masterSkill-1769755203568output-main-chatAgent-1770060581808input-skill",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "simpleMemory-1769876597527",
+      "sourceHandle": "output-memory",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-memory",
+      "id": "reactflow__edge-simpleMemory-1769876597527output-memory-chatAgent-1770060581808input-memory",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "socialReceive-1770042669065",
+      "sourceHandle": "output-media",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-socialReceive-1770042669065output-media-chatAgent-1770060581808input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "socialReceive-1770042669065",
+      "sourceHandle": "output-metadata",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-socialReceive-1770042669065output-metadata-chatAgent-1770060581808input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "socialReceive-1770042669065",
+      "sourceHandle": "output-message",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-socialReceive-1770042669065output-message-chatAgent-1770060581808input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "masterSkill-1770080471262",
+      "sourceHandle": "output-main",
+      "target": "android_agent-1770080279045",
+      "targetHandle": "input-skill",
+      "id": "reactflow__edge-masterSkill-1770080471262output-main-android_agent-1770080279045input-skill",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "appLauncher-1769755673740",
+      "sourceHandle": "output-tool",
+      "target": "android_agent-1770080279045",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-appLauncher-1769755673740output-tool-android_agent-1770080279045input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "batteryMonitor-1769755671312",
+      "sourceHandle": "output-tool",
+      "target": "android_agent-1770080279045",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-batteryMonitor-1769755671312output-tool-android_agent-1770080279045input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "deviceStateAutomation-1769884748460",
+      "sourceHandle": "output-tool",
+      "target": "android_agent-1770080279045",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-deviceStateAutomation-1769884748460output-tool-android_agent-1770080279045input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "systemInfo-1769884739936",
+      "sourceHandle": "output-tool",
+      "target": "android_agent-1770080279045",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-systemInfo-1769884739936output-tool-android_agent-1770080279045input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "appList-1769755676665",
+      "sourceHandle": "output-tool",
+      "target": "android_agent-1770080279045",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-appList-1769755676665output-tool-android_agent-1770080279045input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "location-1769884704270",
+      "sourceHandle": "output-tool",
+      "target": "android_agent-1770080279045",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-location-1769884704270output-tool-android_agent-1770080279045input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "masterSkill-1770193690331",
+      "sourceHandle": "output-main",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-skill",
+      "id": "reactflow__edge-masterSkill-1770193690331output-main-chatAgent-1770060581808input-skill",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "httpRequest-1769755308753",
+      "sourceHandle": "output-tool",
+      "target": "web_agent-1770070863433",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-httpRequest-1769755308753output-tool-web_agent-1770070863433input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "duckduckgoSearch-1769755286327",
+      "sourceHandle": "output-tool",
+      "target": "web_agent-1770070863433",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-duckduckgoSearch-1769755286327output-tool-web_agent-1770070863433input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "pythonExecutor-1769889650412",
+      "sourceHandle": "output-tool",
+      "target": "coding_agent-1770070861999",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-pythonExecutor-1769889650412output-tool-coding_agent-1770070861999input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "javascriptExecutor-1769889652348",
+      "sourceHandle": "output-tool",
+      "target": "coding_agent-1770070861999",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-javascriptExecutor-1769889652348output-tool-coding_agent-1770070861999input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "masterSkill-1770193844078",
+      "sourceHandle": "output-main",
+      "target": "web_agent-1770070863433",
+      "targetHandle": "input-skill",
+      "id": "reactflow__edge-masterSkill-1770193844078output-main-web_agent-1770070863433input-skill",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "masterSkill-1770193849164",
+      "sourceHandle": "output-main",
+      "target": "coding_agent-1770070861999",
+      "targetHandle": "input-skill",
+      "id": "reactflow__edge-masterSkill-1770193849164output-main-coding_agent-1770070861999input-skill",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "web_agent-1770070863433",
+      "sourceHandle": "output-top",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-web_agent-1770070863433output-top-chatAgent-1770060581808input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "simpleMemory-1770194610205",
+      "sourceHandle": "output-memory",
+      "target": "android_agent-1770080279045",
+      "targetHandle": "input-memory",
+      "id": "reactflow__edge-simpleMemory-1770194610205output-memory-android_agent-1770080279045input-memory",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "simpleMemory-1770194632219",
+      "sourceHandle": "output-memory",
+      "target": "web_agent-1770070863433",
+      "targetHandle": "input-memory",
+      "id": "reactflow__edge-simpleMemory-1770194632219output-memory-web_agent-1770070863433input-memory",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "coding_agent-1770070861999",
+      "sourceHandle": "output-top",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-coding_agent-1770070861999output-top-chatAgent-1770060581808input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "simpleMemory-1770194967215",
+      "sourceHandle": "output-memory",
+      "target": "coding_agent-1770070861999",
+      "targetHandle": "input-memory",
+      "id": "reactflow__edge-simpleMemory-1770194967215output-memory-coding_agent-1770070861999input-memory",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "chatAgent-1770060581808",
+      "sourceHandle": "output-main",
+      "target": "console-1770195247780",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-chatAgent-1770060581808output-main-console-1770195247780input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "android_agent-1770080279045",
+      "sourceHandle": "output-main",
+      "target": "console-1770195249519",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-android_agent-1770080279045output-main-console-1770195249519input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "web_agent-1770070863433",
+      "sourceHandle": "output-main",
+      "target": "console-1770195251903",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-web_agent-1770070863433output-main-console-1770195251903input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "coding_agent-1770070861999",
+      "sourceHandle": "output-main",
+      "target": "console-1770195252563",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-coding_agent-1770070861999output-main-console-1770195252563input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "android_agent-1770080279045",
+      "sourceHandle": "output-top",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-android_agent-1770080279045output-top-chatAgent-1770060581808input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "chatAgent-1770060581808",
+      "sourceHandle": "output-main",
+      "target": "socialSend-1770073309846",
+      "targetHandle": "input-message",
+      "id": "reactflow__edge-chatAgent-1770060581808output-main-socialSend-1770073309846input-message",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "task_agent-1770070864827",
+      "sourceHandle": "output-top",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-task_agent-1770070864827output-top-chatAgent-1770060581808input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "task_agent-1770070864827",
+      "sourceHandle": "output-main",
+      "target": "console-1770213610482",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-task_agent-1770070864827output-main-console-1770213610482input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "masterSkill-1770213648261",
+      "sourceHandle": "output-main",
+      "target": "task_agent-1770070864827",
+      "targetHandle": "input-skill",
+      "id": "reactflow__edge-masterSkill-1770213648261output-main-task_agent-1770070864827input-skill",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "simpleMemory-1770213659809",
+      "sourceHandle": "output-memory",
+      "target": "task_agent-1770070864827",
+      "targetHandle": "input-memory",
+      "id": "reactflow__edge-simpleMemory-1770213659809output-memory-task_agent-1770070864827input-memory",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "chatTrigger-1769755237666",
+      "sourceHandle": "output-main",
+      "target": "socialReceive-1770042669065",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-chatTrigger-1769755237666output-main-socialReceive-1770042669065input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "socialSend-1770073309846",
+      "sourceHandle": "output-main",
+      "target": "whatsappSend-1770051996917",
+      "targetHandle": "input-main",
+      "id": "reactflow__edge-socialSend-1770073309846output-main-whatsappSend-1770051996917input-main",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "social_agent-1770213991252",
+      "sourceHandle": "output-top",
+      "target": "chatAgent-1770060581808",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-social_agent-1770213991252output-top-chatAgent-1770060581808input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "whatsappDb-1770080085316",
+      "sourceHandle": "output-tool",
+      "target": "social_agent-1770213991252",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-whatsappDb-1770080085316output-tool-social_agent-1770213991252input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "whatsappSend-1770214044603",
+      "sourceHandle": "output-tool",
+      "target": "social_agent-1770213991252",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-whatsappSend-1770214044603output-tool-social_agent-1770213991252input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "simpleMemory-1770214068738",
+      "sourceHandle": "output-memory",
+      "target": "social_agent-1770213991252",
+      "targetHandle": "input-memory",
+      "id": "reactflow__edge-simpleMemory-1770214068738output-memory-social_agent-1770213991252input-memory",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "masterSkill-1770214062703",
+      "sourceHandle": "output-main",
+      "target": "social_agent-1770213991252",
+      "targetHandle": "input-skill",
+      "id": "reactflow__edge-masterSkill-1770214062703output-main-social_agent-1770213991252input-skill",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "gmaps_locations-1770070846926",
+      "sourceHandle": "output-tool",
+      "target": "social_agent-1770213991252",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-gmaps_locations-1770070846926output-tool-social_agent-1770213991252input-tools",
+      "selected": false
+    },
+    {
+      "type": "smoothstep",
+      "animated": true,
+      "style": {
+        "stroke": "#8be9fd",
+        "strokeWidth": 3
+      },
+      "source": "gmaps_nearby_places-1770070848430",
+      "sourceHandle": "output-tool",
+      "target": "social_agent-1770213991252",
+      "targetHandle": "input-tools",
+      "id": "reactflow__edge-gmaps_nearby_places-1770070848430output-tool-social_agent-1770213991252input-tools",
+      "selected": false
+    }
+  ],
+  "createdAt": "2026-02-04T02:56:18.326Z",
+  "lastModified": "2026-02-04T14:12:50.257Z",
+  "version": "0.0.9"
+}

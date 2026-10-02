@@ -1,0 +1,46 @@
+# dependencies
+node_modules/
+.venv/
+__pycache__/
+.pytest_cache/
+
+# builds
+dist/
+dist-electron/
+build/
+release/
+*.tsbuildinfo
+apps/desktop/runtime-stage/
+apps/desktop/.runtime-cache/
+
+# env
+.env
+.env.local
+
+# editor and OS
+.DS_Store
+.idea/
+.vscode/
+.claude/
+
+# logs
+*.log
+npm-debug.log*
+
+# local runtime data
+services/api/data/
+services/api/demo.db
+.hermes-verify/
+.hermes-data/
+.dev-logs/
+*.sqlite3
+
+# 本机凭证与运行时状态。secret.key 是 Fernet 主密钥（ADR 0028）——
+# 正常在 AGENTPULSE_HOME 下（仓库外），这里是万一有人把 HOME 设进仓库的保险。
+secret.key
+company.db
+company.db-wal
+company.db-shm
+ledgers/
+workdirs/
+runtime-cache/

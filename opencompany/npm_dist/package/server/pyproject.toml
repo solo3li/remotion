@@ -1,0 +1,271 @@
+[project]
+name = "opencompany-server"
+version = "0.1.0"
+description = "OpenCompany workflow automation backend"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    # Core
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic-settings>=2.6.0",
+
+    # Database
+    "sqlmodel>=0.0.22",
+    "aiosqlite>=0.20.0",
+    "greenlet>=3.0.0",  # Required by SQLAlchemy asyncio on macOS ARM64
+
+    # HTTP/WebSocket
+    "httpx>=0.28.0",
+    "aiohttp>=3.11.0",
+    "websockets>=14.0",
+
+    # Google Maps
+    "googlemaps>=4.10.0",
+
+    # Logging & Serialization
+    "structlog>=24.1.0",
+    "orjson>=3.9.0",
+
+    # Tracing / benchmarking (OpenTelemetry — industry standard)
+    "opentelemetry-api>=1.27.0",
+    "opentelemetry-sdk>=1.27.0",
+
+    # YAML parsing (for SKILL.md files + Temporal config rendering)
+    "pyyaml>=6.0",
+
+    # Temporal CLI installer (services/temporal/_install.py).
+    # pooch: cross-platform binary download + cache (extracts the
+    # ``temporal`` CLI from the official URL at
+    # https://temporal.download/cli/archive/latest).
+    "pooch>=1.8.2",
+
+    # Media metadata (services/media/inspect.py). Pure Python, zero native
+    # deps, MIT. Chosen over mutagen (GPL-2.0, incompatible with this
+    # project's MIT licence) and over pydub / ffprobe, which both require
+    # an ffmpeg binary on PATH that nothing installs on Windows.
+    "tinytag>=2.0.0",
+    # Data node read tiers (nodes/tool/data_source/_readers.py). First-class
+    # rather than an optional extra so the LLM-facing tool behaves the same
+    # on every install: openpyxl for XLSX (pure Python), Pillow for image
+    # metadata (was already shipping transitively via qrcode[pil]) — and for
+    # services/media/image_fit.py budget resizing.
+    "openpyxl>=3.1.0",
+    "pillow>=10.0.0",
+    # Multipart parsing for the workspace upload route. Already present
+    # transitively via mcp; declared explicitly so it survives that
+    # dependency changing.
+    "python-multipart>=0.0.20",
+
+    # Auth
+    "bcrypt>=4.2.0",
+    # pyjwt replaced python-jose (2026-06): python-jose drags in python-ecdsa,
+    # which has an unpatchable Minerva timing-attack advisory (GHSA-wj6h-64fc-37mp).
+    "pyjwt>=2.13.0",
+    "email-validator>=2.0.0",
+
+    # Credential Encryption
+    # Floor is a security floor: <50.0.0 carries GHSA-g6cj-pr64-35w5
+    # (CVE-2026-69247), a Bleichenbacher oracle in PKCS#7 EnvelopedData
+    # decryption. Do not lower without checking that advisory.
+    "cryptography>=50.0.0",
+
+    # Native LLM SDKs. OpenAI also drives the eight OpenAI-compatible
+    # providers through configured base URLs.
+    "openai==2.53.0",
+    "anthropic==0.96.0",
+    "google-genai==2.11.0",
+
+    # Pydantic 2.13 changed validator ordering; pin to main's 2.12 line
+    # to keep tool-schema generation identical.
+    "pydantic==2.12.5",
+
+    # Dependency Injection
+    "dependency-injector>=4.40.0",
+
+    # Utils
+    "python-dotenv>=1.0.0",
+    "qrcode[pil]>=8.0",
+    # IANA timezone database for stdlib zoneinfo on Windows (no system
+    # tz db there). Was a hidden transitive dep of apscheduler until
+    # Wave 15.2 retired it; currentTimeTool's ZoneInfo(...) needs it.
+    "tzdata>=2024.1",
+    "psutil>=6.0.0",
+
+    # Web Search
+    "ddgs>=9.0.0",
+
+    # Twitter/X API
+    "xdk>=0.1.0",
+
+    # Apify Web Scraping
+    "apify-client>=1.8.0",
+
+    # TikHub social scraping SDK. Auto-generated from TikHub's openapi.json;
+    # capped below 3 because the resource/method surface regenerates per
+    # release. Pulls typer for its own `tikhub` CLI (not imported by us).
+    "tikhub>=2.1.2,<3",
+
+    # Crawlee Web Scraping
+    "crawlee[beautifulsoup]>=1.4.0",
+    "html2text>=2024.2.26",
+
+    # Telegram Bot API
+    "python-telegram-bot>=22.6",
+
+    # Discord Gateway. Capped below 3 because the major version tracks the
+    # gateway/API version the client speaks, which is a wire contract rather
+    # than a library detail. Installed without the [voice] extra: voice is out
+    # of scope and the extra pulls PyNaCl plus a native build.
+    "discord.py>=2.7.1,<3",
+
+    # Markdown formatting (GFM to platform-native)
+    "markdown-it-py>=3.0.0",
+
+    # Workflow naming — production-grade slugify with Unicode
+    # transliteration (60M dl/mo, MIT). Used by
+    # ``services.workflow_naming.slugify_name`` to derive
+    # ``Workflow.slug`` from user display names. Brings ``text-unidecode``
+    # as a transitive dep so "日本語" -> "Ri_Ben_Yu" instead of falling
+    # back to "Workflow_N".
+    "python-slugify>=8.0.0",
+
+    # Local LLM SDKs — used by `nodes/model/_local_validator.py` to
+    # introspect the user's actually-loaded models (context_length,
+    # max_output_tokens). Replaces hand-rolled httpx probes against
+    # /api/show and /api/v0/models so each SDK's own typed result
+    # struct is the source of truth.
+    "ollama>=0.6.0",
+    "lmstudio>=1.5.0",
+
+    # Gmail API
+    "google-api-python-client>=2.100.0",
+    "google-auth>=2.27.0",
+    "google-auth-oauthlib>=1.2.0",
+
+    # Temporal (durable workflow execution). Floor 1.25: Wave 18 uses
+    # PollerBehaviorAutoscaling + max_activities_per_second +
+    # max_cached_workflows on Worker(...).
+    "temporalio>=1.25.0",
+
+    # RLM (Recursive Language Models) agent
+    "rlms>=0.1.1",
+
+    # MCP (Model Context Protocol) — host server for spawned CLI sessions
+    # to discover and call OpenCompany tools (mcp__opencompany__*) the same way
+    # VSCode's Claude Code extension does.
+    #
+    # Capped below 2.0 deliberately. `services/cli_agent/mcp_server.py` imports
+    # `mcp.server.fastmcp.FastMCP`, which 2.0.0 (released 2026-07-28) removed;
+    # taking it unpinned fails that module at import with ModuleNotFoundError.
+    # uv.lock is committed now (the desktop build syncs ``--frozen`` against
+    # it), but ``predeploy.yml`` still runs a plain ``uv sync`` for the npm
+    # path, so keep the floor bounded: an unbounded constraint let an upstream
+    # major release break the build with no change on our side -- which is
+    # exactly what happened. Lift the cap together with the FastMCP migration.
+    "mcp>=1.0.0,<2",
+
+    # PTY transports — drive `claude` interactive TUI cross-platform.
+    # POSIX uses ptyprocess (wraps forkpty) for `loop.add_reader`-friendly
+    # async; Windows uses pywinpty v3.x which is Rust-backed via PyO3 +
+    # winpty-rs + Maturin (used by Jupyter Lab terminals and Spyder's
+    # IPython console). See docs-internal/claude_code_interactive_mode.md
+    # for the topology rationale and the deferred upgrade path to an
+    # out-of-process pty-host (VSCode's pattern).
+    "ptyprocess>=0.7.0; sys_platform != 'win32'",
+    "pywinpty>=3.0.3; sys_platform == 'win32'",
+
+    # Sandboxed Python interpreter (montyExecutor node). Pydantic Monty:
+    # a deny-by-default Python subset written in Rust with ENFORCED
+    # time/memory limits, for safely running AI-generated code without
+    # container overhead (no filesystem/network/env unless explicitly
+    # granted via external_functions / MountDir). Prebuilt cross-platform
+    # wheels on PyPI (cp310-cp314, win/mac/linux), so a normal dep — NOT
+    # the pooch/npm lazy-binary pattern (that's for non-PyPI binaries).
+    # Pinned because pre-1.0 (alpha; API still moving fast).
+    "pydantic-monty==0.0.18",
+]
+
+[project.optional-dependencies]
+# PEP 621 extras — downstream consumers opt into these via
+# ``pip install opencompany-server[<extra>]`` / ``uv pip install -e .[<extra>]``.
+# Dev tooling lives in ``[dependency-groups]`` below (PEP 735) instead so
+# ``uv sync`` keeps it installed by default in contributor checkouts.
+docs = [
+    "beautifulsoup4>=4.12.0",
+    "pypdf>=5.0.0",
+]
+local-embeddings = [
+    # Optional because the model + torch stack is large. The embedding node and
+    # long-term memory surface a clear install hint when it is absent.
+    "sentence-transformers",
+]
+keyring = [
+    "keyring>=25.0.0",  # OS-native credential storage (Windows/macOS/Linux)
+]
+aws = [
+    "boto3>=1.34.0",  # AWS Secrets Manager
+]
+
+[dependency-groups]
+# PEP 735 dependency groups — included by ``uv sync`` (and ``uv sync
+# --group dev``) by default, but NOT shipped to PyPI consumers. Pre-fix
+# the dev tools lived in ``[project.optional-dependencies].dev`` which
+# meant every ``bun install`` (= ``uv sync`` without ``--extra dev``)
+# uninstalled them — broke contributor test workflows on every install
+# / dependency bump. Moving them here keeps ``pip install
+# opencompany-server`` lean for end-users while making contributor
+# checkouts test-ready straight out of ``bun install``.
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.14.0",
+    "pytest-cov>=6.0.0",
+    "respx>=0.21.0",
+    "ruff>=0.8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+# Default run excludes ``live`` tests so CI / local pytest doesn't
+# accidentally hit real LLM provider APIs and incur charges. Opt in
+# explicitly via ``pytest -m live`` (key-less providers still skip
+# cleanly inside the test body).
+addopts = "-m 'not live'"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+markers = [
+    "unit: fast unit tests with mocks (default)",
+    "node_contract: contract tests that drive a handler through NodeExecutor",
+    "slow: tests that take >1s",
+    "credentials: tests for the credentials subsystem (encryption, auth_service, oauth)",
+    "live: tests that call real LLM provider APIs — require API keys in .env or environment. Opt-in via `pytest -m live`.",
+]
+
+[tool.coverage.run]
+source = ["services.handlers", "services.node_executor"]
+omit = ["*/tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
+[tool.ruff]
+line-length = 140
+
+[tool.ruff.lint]
+ignore = [
+    "E402",   # Module level import not at top (intentional lazy imports)
+    "E701",   # Multiple statements on one line (compact dict patterns)
+]
+
+[tool.uv]
+index-url = "https://pypi.org/simple"
+# Compile site-packages to .pyc at `uv sync` time (uv default is false —
+# without this, all ~9,700 dependency .py files compile lazily on the
+# FIRST import after a fresh sync, adding tens of seconds to a post-clean
+# cold boot on Windows). Trades longer sync for faster startup, per the
+# uv docs' recommendation for startup-critical applications.
+compile-bytecode = true

@@ -1,0 +1,15 @@
+# CI on every push and PR to main. Delegates to predeploy.yml.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  predeploy:
+    uses: ./.github/workflows/predeploy.yml

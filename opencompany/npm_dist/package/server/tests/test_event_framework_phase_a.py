@@ -1,0 +1,537 @@
+"""Wave 12 Phase A: smoke tests for the event-framework foundation.
+
+Covers (with no live Temporal cluster required):
+
+A1: ``TestStartToCloseTimeoutOverridesAreCommented`` — lives in
+    ``test_plugin_contract.py``; not duplicated here.
+
+A2: ``NodeUserError`` is in :class:`RetryPolicy`'s default
+    ``non_retryable_error_types``.
+
+A3: ``Settings.temporal_graceful_shutdown_seconds`` is exposed,
+    configurable, and consumed by :func:`worker._graceful_shutdown_timeout`.
+
+A4: :data:`EVENT_SEARCH_ATTRIBUTES` is a non-empty structured spec list;
+    every entry has a name + indexed_type + description; the
+    :func:`attribute_names` helper agrees with the structure.
+
+A6: :func:`services.events.dispatch.emit` is a no-op pass-through when
+    ``Settings.event_framework_enabled=False`` (Phase-A default).
+
+A7: :class:`MachinaWorkflow` initializes its event state in ``__init__``;
+    the ``on_event`` signal handler dedups by ``event.id`` and queues
+    matching events; :meth:`_has_event_matching` implements the
+    ``wait_condition`` predicate contract.
+
+A8: :func:`emit_event_activity` validates the envelope payload and
+    forwards to :func:`dispatch.emit`.
+"""
+
+from __future__ import annotations
+
+import sys
+import types
+from datetime import timedelta
+from typing import Any, Dict, List
+from unittest.mock import MagicMock
+
+import pytest
+
+# Stub the root `cli` package (lives at project root, outside server/) so
+# `services.temporal.__init__` → `_runtime.py` → `from cli.tcp import
+# probe_tcp_port` doesn't crash collection. Conftest stubs core.* but
+# not cli.*.
+if "cli" not in sys.modules:
+    _cli_stub = types.ModuleType("cli")
+    _cli_stub.__path__ = []
+    sys.modules["cli"] = _cli_stub
+    _opencompany_tcp = types.ModuleType("cli.tcp")
+    _opencompany_tcp.probe_tcp_port = MagicMock(return_value=False)
+    sys.modules["cli.tcp"] = _opencompany_tcp
+
+from services.events.envelope import WorkflowEvent
+from services.plugin.scaling import RetryPolicy
+
+
+class TestA2NodeUserErrorNonRetryable:
+    """A2: ``NodeUserError`` ships in the default ``non_retryable_error_types``
+    so a single ``cls.retry_policy = DEFAULT_RETRY`` picks it up."""
+
+    def test_node_user_error_in_default_non_retryable(self):
+        policy = RetryPolicy()
+        assert "NodeUserError" in policy.non_retryable_error_types, (
+            "RetryPolicy.non_retryable_error_types default must contain "
+            "'NodeUserError' so plugin-raised user errors fail fast in "
+            "Temporal activities."
+        )
+
+    def test_to_temporal_preserves_non_retryable_list(self):
+        policy = RetryPolicy()
+        # Import-on-call to keep the test independent of Temporal SDK
+        # availability at module-import time.
+        try:
+            temporal_policy = policy.to_temporal()
+        except ImportError:  # pragma: no cover
+            pytest.skip("temporalio SDK not installed in test env")
+        assert "NodeUserError" in temporal_policy.non_retryable_error_types
+
+
+class TestA3GracefulShutdownTimeout:
+    """A3: SIGTERM grace window is config-driven, not hardcoded.
+
+    ``conftest.py`` mocks ``core.config.Settings`` as ``MagicMock`` so
+    handler tests don't pay Pydantic startup cost. We patch a real
+    ``Settings``-like stub inside this class to verify the contract.
+    """
+
+    def test_worker_helper_returns_timedelta(self, monkeypatch):
+        from services.temporal import worker as worker_mod
+
+        class _FakeSettings:
+            temporal_graceful_shutdown_seconds = 17
+
+        # Patch the lazy import inside worker._graceful_shutdown_timeout.
+        # It does `from core.config import Settings`; patch that module
+        # entry to return our fake.
+        import core.config
+
+        monkeypatch.setattr(core.config, "Settings", lambda: _FakeSettings())
+
+        td = worker_mod._graceful_shutdown_timeout()
+        assert isinstance(td, timedelta)
+        assert td.total_seconds() == 17
+
+
+class TestA4SearchAttributesSpec:
+    """A4: Search Attributes are declared structurally, NOT scattered
+    as literals through the dispatch + admin code."""
+
+    def test_spec_is_non_empty(self):
+        from services.temporal.search_attributes import EVENT_SEARCH_ATTRIBUTES
+
+        assert len(EVENT_SEARCH_ATTRIBUTES) >= 6
+
+    def test_each_spec_complete(self):
+        from services.temporal.search_attributes import EVENT_SEARCH_ATTRIBUTES
+
+        for spec in EVENT_SEARCH_ATTRIBUTES:
+            assert spec.name, "every search-attribute spec needs a name"
+            assert spec.indexed_type, f"{spec.name} missing indexed_type"
+            assert spec.description, f"{spec.name} missing description"
+
+    def test_attribute_names_helper_matches_spec(self):
+        from services.temporal.search_attributes import (
+            EVENT_SEARCH_ATTRIBUTES,
+            attribute_names,
+        )
+
+        spec_names = tuple(s.name for s in EVENT_SEARCH_ATTRIBUTES)
+        assert attribute_names() == spec_names
+
+    def test_required_attributes_present(self):
+        """The 6 attributes the plan promises."""
+        from services.temporal.search_attributes import attribute_names
+
+        required = {
+            "EventType",
+            "EventSource",
+            "EventWorkflowId",
+            "TriggerNodeId",
+            "EventTriggerKind",
+            "EventReceivedAt",
+        }
+        assert required.issubset(set(attribute_names()))
+
+
+class TestEventFrameworkEnabledDefault:
+    """Wave 12 canary-flag default — flipped to ``True`` on 2026-05-15.
+
+    The env var override (``EVENT_FRAMEWORK_ENABLED=false``) stays as the
+    rollback channel. This test locks the new default so a future revert
+    requires updating both core/config.py and this assertion (in the
+    same commit) — preventing accidental flips.
+
+    Source-introspection rather than ``Settings()`` instantiation because
+    conftest stubs ``core.config.Settings`` as a MagicMock for the test
+    session.
+    """
+
+    def test_event_framework_enabled_defaults_true(self):
+        """The ``Field(default=True, env="EVENT_FRAMEWORK_ENABLED")`` line
+        in core/config.py is the canary flag's production default.
+
+        Regex-based so the assertion tolerates ruff format's choice of
+        single-line vs. multi-line ``Field(...)`` — both shapes are
+        semantically equivalent.
+        """
+        import re
+        from pathlib import Path
+
+        config_src = (Path(__file__).parent.parent / "core" / "config.py").read_text(encoding="utf-8")
+        default_true = re.compile(
+            r"default=True[\s,]+env=\"EVENT_FRAMEWORK_ENABLED\"",
+            re.DOTALL,
+        )
+        default_false = re.compile(
+            r"default=False[\s,]+env=\"EVENT_FRAMEWORK_ENABLED\"",
+            re.DOTALL,
+        )
+        assert default_true.search(config_src) is not None, (
+            "event_framework_enabled default flipped to True in Wave 12 "
+            "(2026-05-15). The declaration "
+            '``Field(default=True, env="EVENT_FRAMEWORK_ENABLED")`` is '
+            "missing from core/config.py. Use EVENT_FRAMEWORK_ENABLED=false "
+            "in .env to opt out — not by reverting the default."
+        )
+        assert default_false.search(config_src) is None, (
+            "event_framework_enabled reverted to default=False. Wave 12 "
+            "flipped the default to True on 2026-05-15. Use the env var "
+            "(EVENT_FRAMEWORK_ENABLED=false) for opt-out, not a code revert."
+        )
+
+
+class TestCanaryRegistryCoverage:
+    """Wave 12 — every canary trigger type opts into the
+    ``services.deployment.canary_registry`` self-registration pattern.
+
+    Locks the 7-canary surface that gated the flag default flip.
+    Adding a new canary plugin must register via
+    :func:`register_canary_trigger_type` from its ``__init__.py``;
+    removing one needs an explicit edit here.
+    """
+
+    def test_seven_canary_types_registered(self):
+        """All 7 production canary types are registered after plugin import."""
+        # Triggers import side-effect: each canary plugin's __init__.py
+        # calls register_canary_trigger_type(<type>).
+        import nodes  # noqa: F401
+        from services.deployment.canary_registry import canary_trigger_types
+
+        expected = frozenset(
+            {
+                # Push triggers (Wave 12 C1)
+                "webhookTrigger",
+                "chatTrigger",
+                "taskTrigger",
+                "telegramReceive",
+                "whatsappReceive",
+                # Polling trigger (Wave 12 C2)
+                "googleGmailReceive",
+                # Cron trigger (Wave 12 C3)
+                "cronScheduler",
+            }
+        )
+        actual = canary_trigger_types()
+        missing = expected - actual
+        assert not missing, (
+            f"Canary registry missing expected types: {sorted(missing)}. "
+            f"Plugin folder for each must call register_canary_trigger_type "
+            f"from its __init__.py side-effect import."
+        )
+
+
+class TestA6DispatchEmitFeatureFlag:
+    """A6: ``emit`` is a no-op pass-through when the flag is off."""
+
+    @pytest.mark.asyncio
+    async def test_disabled_emit_is_passthrough(self, monkeypatch):
+        # Pydantic Settings reads from env; force the flag off for this test.
+        monkeypatch.setenv("EVENT_FRAMEWORK_ENABLED", "false")
+
+        from services.events.dispatch import emit
+
+        event = WorkflowEvent(
+            source="opencompany://services/test",
+            type="com.opencompany.test.disabled",
+        )
+        returned = await emit(event)
+        assert returned is event
+
+    @pytest.mark.asyncio
+    async def test_enabled_emit_calls_both_paths(self, monkeypatch):
+        """When the flag is on, both signal-fanout and in-process
+        broadcast are invoked. Both are patched to record-only."""
+        monkeypatch.setenv("EVENT_FRAMEWORK_ENABLED", "true")
+        # Force Settings() to re-read by clearing the cached singleton
+        # if any; here Settings() builds fresh per call so monkeypatch
+        # of env is enough.
+
+        signal_calls = []
+        broadcast_calls = []
+
+        async def fake_signal(event):
+            signal_calls.append(event)
+
+        async def fake_broadcast(event, wire_key):
+            broadcast_calls.append((event, wire_key))
+
+        from services.events import dispatch
+
+        monkeypatch.setattr(dispatch, "_signal_running_consumers", fake_signal)
+        monkeypatch.setattr(dispatch, "_broadcast_in_process", fake_broadcast)
+
+        event = WorkflowEvent(
+            source="opencompany://services/test",
+            type="com.opencompany.test.enabled",
+        )
+        await dispatch.emit(event, wire_routing_key="custom_wire_key")
+
+        assert len(signal_calls) == 1
+        assert signal_calls[0] is event
+        assert len(broadcast_calls) == 1
+        assert broadcast_calls[0] == (event, "custom_wire_key")
+
+
+class TestA7MachinaWorkflowSignalHandler:
+    """A7: signal handler dedups + queues; predicate matches.
+
+    ``workflow.logger`` requires a Temporal workflow event loop, which
+    we don't spin up in these unit tests. Patch ``temporalio.workflow.logger``
+    to a no-op so the handler can run synchronously.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _patch_workflow_logger(self, monkeypatch):
+        from unittest.mock import MagicMock
+        from temporalio import workflow as temporal_workflow
+
+        monkeypatch.setattr(temporal_workflow, "logger", MagicMock())
+
+    def test_init_sets_empty_state(self):
+        from services.temporal.workflow import MachinaWorkflow
+
+        wf = MachinaWorkflow()
+        assert wf._seen_event_ids == set()
+        assert wf._matched_events == []
+
+    @pytest.mark.asyncio
+    async def test_on_event_dedups_by_id(self):
+        from services.temporal.workflow import MachinaWorkflow
+
+        wf = MachinaWorkflow()
+        payload = {"id": "evt-1", "type": "com.opencompany.test.x"}
+
+        await wf.on_event(payload)
+        await wf.on_event(payload)  # duplicate
+
+        assert wf._seen_event_ids == {"evt-1"}
+        assert len(wf._matched_events) == 1
+
+    @pytest.mark.asyncio
+    async def test_on_event_drops_malformed_envelope(self):
+        from services.temporal.workflow import MachinaWorkflow
+
+        wf = MachinaWorkflow()
+        await wf.on_event({"type": "com.opencompany.test.x"})  # no 'id'
+        assert wf._matched_events == []
+
+    def test_has_event_matching_empty_state(self):
+        from services.temporal.workflow import MachinaWorkflow
+
+        wf = MachinaWorkflow()
+        assert wf._has_event_matching() is False
+
+    def test_has_event_matching_predicate(self):
+        from services.temporal.workflow import MachinaWorkflow
+
+        wf = MachinaWorkflow()
+        wf._matched_events.append({"id": "e1", "type": "com.opencompany.whatsapp.message.received"})
+
+        # No-predicate: any queued event matches.
+        assert wf._has_event_matching() is True
+
+        # Truthy predicate matches.
+        assert wf._has_event_matching(lambda e: e["type"].endswith("message.received")) is True
+
+        # Falsy predicate doesn't match.
+        assert wf._has_event_matching(lambda e: e["type"].endswith(".nope")) is False
+
+    def test_pop_matching_event_empty_returns_none(self):
+        from services.temporal.workflow import MachinaWorkflow
+
+        wf = MachinaWorkflow()
+        assert wf._pop_matching_event() is None
+        assert wf._pop_matching_event(lambda e: True) is None
+
+    def test_pop_matching_event_no_predicate_returns_fifo_head(self):
+        from services.temporal.workflow import MachinaWorkflow
+
+        wf = MachinaWorkflow()
+        first = {"id": "e1", "type": "com.opencompany.x.received"}
+        second = {"id": "e2", "type": "com.opencompany.y.received"}
+        wf._matched_events.extend([first, second])
+
+        popped = wf._pop_matching_event()
+        assert popped is first
+        assert wf._matched_events == [second]
+
+    def test_pop_matching_event_predicate_picks_first_match(self):
+        from services.temporal.workflow import MachinaWorkflow
+
+        wf = MachinaWorkflow()
+        first = {"id": "e1", "type": "com.opencompany.x.received"}
+        second = {"id": "e2", "type": "com.opencompany.y.received"}
+        third = {"id": "e3", "type": "com.opencompany.x.delivered"}
+        wf._matched_events.extend([first, second, third])
+
+        popped = wf._pop_matching_event(lambda e: e["type"].startswith("com.opencompany.y"))
+        assert popped is second
+        # Order preserved for non-matching siblings.
+        assert wf._matched_events == [first, third]
+
+    def test_pop_matching_event_no_predicate_match_returns_none(self):
+        from services.temporal.workflow import MachinaWorkflow
+
+        wf = MachinaWorkflow()
+        wf._matched_events.append({"id": "e1", "type": "com.opencompany.x.received"})
+        result = wf._pop_matching_event(lambda e: e["type"].endswith(".nope"))
+        assert result is None
+        # Queue untouched on miss.
+        assert len(wf._matched_events) == 1
+
+
+class TestA8EmitEventActivity:
+    """A8: activity wrapper validates the envelope and forwards to emit."""
+
+    @pytest.mark.asyncio
+    async def test_valid_payload_returns_delivered_true(self, monkeypatch):
+        captured = []
+
+        async def fake_emit(event, **kwargs):
+            captured.append(event)
+            return event
+
+        from services.events import dispatch as dispatch_mod
+
+        monkeypatch.setattr(dispatch_mod, "emit", fake_emit)
+
+        from services.temporal.activities import emit_event_activity
+
+        payload = WorkflowEvent(
+            source="opencompany://services/test",
+            type="com.opencompany.test.a8",
+        ).model_dump(mode="json")
+
+        # Activities decorated with @activity.defn are still callable
+        # outside a worker — they're plain async functions with metadata.
+        result = await emit_event_activity(payload)
+
+        assert result["delivered"] is True
+        assert result["event_type"] == "com.opencompany.test.a8"
+        assert len(captured) == 1
+
+    @pytest.mark.asyncio
+    async def test_malformed_payload_returns_delivered_false(self):
+        from services.temporal.activities import emit_event_activity
+
+        # Missing required `source` and `type` fields → validation fails.
+        result = await emit_event_activity({"id": "evt-malformed"})
+
+        assert result["delivered"] is False
+        assert "error" in result
+
+
+class TestTriggerOutputPersistenceForTemplateResolution:
+    """Wave 13: the canary path's pre-executed trigger nodes must
+    persist their output to the workflow output store, otherwise
+    :class:`services.parameter_resolver.ParameterResolver` can't see
+    them and downstream ``{{triggerNode.field}}`` templates silently
+    resolve to empty.
+
+    Pre-fix MachinaWorkflow's pre-executed handler set
+    ``outputs[node_id]`` in WORKFLOW MEMORY only — never persisted.
+    The legacy ``DeploymentManager._execute_from_trigger`` path called
+    ``_store_output(trigger_node_id, "output_0", trigger_output)``
+    before executing downstream. The fix adds a
+    ``store_node_output_activity`` call inside MachinaWorkflow.run's
+    pre-executed loop that mirrors that persist.
+    """
+
+    def test_activity_exists_and_is_async(self):
+        import inspect
+
+        from services.temporal.activities import store_node_output_activity
+
+        assert inspect.iscoroutinefunction(store_node_output_activity), (
+            "store_node_output_activity must be async — workflow.execute_activity " "awaits it."
+        )
+
+    def test_opencompany_workflow_calls_persist_activity_for_pre_executed(self):
+        """Source-introspection regression: MachinaWorkflow.run's
+        pre-executed handler must call store_node_output_activity so
+        ParameterResolver can read the trigger output back."""
+        import inspect
+
+        from services.temporal.workflow import MachinaWorkflow
+
+        src = inspect.getsource(MachinaWorkflow.run)
+
+        assert "store_node_output_activity" in src, (
+            "MachinaWorkflow.run no longer schedules the "
+            "store_node_output_activity for pre-executed trigger nodes. "
+            "Without this persist, the legacy "
+            "DeploymentManager._execute_from_trigger contract "
+            "(``_store_output(trigger_node_id, 'output_0', ...)``) is "
+            "missing on the canary path and ``{{triggerNode.field}}`` "
+            "templates resolve to empty."
+        )
+        # Sanity: the persist guard skips non-firing siblings (their
+        # _trigger_output is ``{not_triggered: True}``).
+        assert "not_triggered" in src, (
+            "MachinaWorkflow.run must skip the persist for non-firing "
+            "trigger siblings (``_trigger_output={'not_triggered': True}``). "
+            "Otherwise sibling triggers in the same deployment write empty "
+            "outputs that template references could pick up by mistake."
+        )
+
+    @pytest.mark.asyncio
+    async def test_store_activity_writes_three_handles(self, monkeypatch):
+        """The activity must write to every standard output handle —
+        downstream edges target different handle names (``output_main``
+        on agent nodes, ``output_0`` on trigger nodes, ``output_top`` on
+        legacy code paths). Writing only one would miss the others."""
+        from services.temporal.activities import store_node_output_activity
+
+        calls: List[Dict[str, Any]] = []
+
+        class _StubWorkflowService:
+            async def store_node_output(self, session_id, node_id, output_name, data):
+                calls.append(
+                    {
+                        "session_id": session_id,
+                        "node_id": node_id,
+                        "output_name": output_name,
+                        "data": data,
+                    }
+                )
+
+        class _StubContainer:
+            def workflow_service(self):
+                return _StubWorkflowService()
+
+        from core import container as container_mod
+
+        monkeypatch.setattr(container_mod, "container", _StubContainer())
+
+        await store_node_output_activity(
+            {
+                "node_id": "trig-1",
+                "session_id": "sess-1",
+                "result": {"message": "hello", "session_id": "sess-1"},
+            }
+        )
+
+        # All three standard handles get the data — same write pattern
+        # NodeExecutor uses for non-pre-executed nodes.
+        output_names = {c["output_name"] for c in calls}
+        assert output_names == {"output_main", "output_top", "output_0"}, (
+            f"Expected writes to output_main + output_top + output_0; "
+            f"got {sorted(output_names)!r}. Missing handles cause "
+            f"downstream template resolution to fail when the edge "
+            f"targets a handle that wasn't written."
+        )
+        # Same node_id + session_id + data on every write.
+        assert {c["node_id"] for c in calls} == {"trig-1"}
+        assert {c["session_id"] for c in calls} == {"sess-1"}
+        for c in calls:
+            assert c["data"] == {"message": "hello", "session_id": "sess-1"}

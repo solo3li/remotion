@@ -1,0 +1,71 @@
+{
+  "_comment": "Node visibility config. `enabled_nodes`: positive list shown in normal mode (empty = show all). `disabled_groups` / `disabled_nodes`: ABSOLUTE blocklist enforced in BOTH normal and dev mode — wins over enabled_nodes and over the show_all default. Node type identifiers must match the 'type' class attribute on the plugin in server/nodes/<category>/<file>.py verbatim.",
+  "enabled_nodes": [
+    "start",
+    "chatTrigger",
+    "taskTrigger",
+    "console",
+
+    "aiAgent",
+    "chatAgent",
+    "android_agent",
+    "vertex_managed_agent",
+    "vertex_agent_admin",
+    "vertexCloudTool",
+
+    "simpleMemory",
+    "dataSource",
+    "visionAnalyze",
+    "masterSkill",
+
+    "openaiChatModel",
+    "anthropicChatModel",
+    "geminiChatModel",
+    "sarvamChatModel",
+
+    "calculatorTool",
+    "currentTimeTool",
+    "writeTodos",
+    "canvas",
+
+    "httpRequest",
+    "timer",
+    "cronScheduler",
+
+    "tikhubAction",
+
+    "telegramSend",
+    "telegramReceive",
+
+    "discordSend",
+    "discordAction",
+    "discordReceive",
+    "discordInteraction",
+
+    "whatsappBusinessSend",
+    "whatsappBusinessReceive",
+    "whatsappBusinessStatus",
+    "whatsappBusinessMedia",
+
+    "airplaneModeControl",
+    "appLauncher",
+    "appList",
+    "audioAutomation",
+    "batteryMonitor",
+    "bluetoothAutomation",
+    "cameraControl",
+    "deviceStateAutomation",
+    "environmentalSensors",
+    "location",
+    "mediaControl",
+    "motionDetection",
+    "networkMonitor",
+    "screenControlAutomation",
+    "systemInfo",
+    "wifiAutomation"
+  ],
+  "disabled_groups": [],
+  "disabled_nodes": [],
+  "disabled_credential_categories": [],
+  "disabled_skill_folders": []
+}

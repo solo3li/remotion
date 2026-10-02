@@ -1,0 +1,135 @@
+{
+  "name": "@zeenie-ai/opencompany",
+  "version": "0.2.1",
+  "description": "Open-source operating system for self-improving AI employees, running on your own computer",
+  "type": "module",
+  "keywords": [
+    "ai-employees",
+    "multi-agent",
+    "self-hosted",
+    "workflow",
+    "automation",
+    "react-flow",
+    "ai-agent",
+    "native-llm",
+    "n8n",
+    "whatsapp",
+    "android",
+    "low-code",
+    "no-code"
+  ],
+  "author": "Rohit G <trohitg@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/zeenie-ai/OpenCompany#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeenie-ai/OpenCompany.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zeenie-ai/OpenCompany/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "bin": {
+    "company": "./bin/cli.js",
+    "machina": "./bin/machina.js"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  },
+  "packageManager": "bun@1.4.0",
+  "files": [
+    "bin/",
+    "scripts/",
+    ".opencompany/workflows/",
+    "cli/",
+    "!cli/tests/",
+    "!cli/**/__pycache__/",
+    "client/src/",
+    "client/public/",
+    "client/dist/",
+    "client/*.json",
+    "client/*.html",
+    "client/*.js",
+    "client/*.ts",
+    "client/*.conf",
+    "server/",
+    "!server/.venv/",
+    "!server/**/__pycache__/",
+    "!**/.pytest_cache/",
+    "!**/node_modules/",
+    "!**/.vite/",
+    "!**/.terraform/",
+    "!**/*.tfstate",
+    "!**/*.tfstate.*",
+    "!server/tests/_test_opencompany_root/",
+    ".env.template",
+    "pyproject.toml",
+    "README.md",
+    "install.sh",
+    "install.ps1"
+  ],
+  "workspaces": [
+    "client",
+    "server/nodejs"
+  ],
+  "scripts": {
+    "start": "python -m cli start",
+    "dev": "python -m cli dev",
+    "serve": "python -m cli serve",
+    "start:temporal": "cross-env TEMPORAL_ENABLED=true python -m cli start",
+    "client:start": "bun --cwd=client run start",
+    "python:start": "cd server && uv run python main.py",
+    "python:daemon": "cd server && cross-env HOST=0.0.0.0 uv run python main.py",
+    "temporal:worker": "cd server && uv run python -m services.temporal.worker",
+    "build": "python -m cli build",
+    "clean": "python -m cli clean",
+    "stop": "python -m cli stop",
+    "test": "bun run test:backend && bun run test:frontend",
+    "test:backend": "cd server && uv run pytest tests/ -v",
+    "test:frontend": "bun --cwd=client run test",
+    "test:nodes": "cd server && uv run pytest tests/nodes/ -v --cov=services.handlers --cov-report=term-missing",
+    "docs:nodes": "python -m cli docs nodes",
+    "docs:nodes:check": "python -m cli docs nodes --check",
+    "deploy": "python -m cli deploy",
+    "daemon:start": "python -m cli daemon start",
+    "daemon:stop": "python -m cli daemon stop",
+    "daemon:status": "python -m cli daemon status",
+    "daemon:restart": "python -m cli daemon restart",
+    "version:sync": "python -m cli version sync",
+    "typecheck": "tsc --noEmit -p client/tsconfig.json",
+    "prepublishOnly": "python -m cli version sync && bun -e \"const p=require('./package.json'); if(!p.bin||!p.version){process.exit(1)}\"",
+    "preinstall": "bun scripts/preinstall.js",
+    "postinstall": "bun scripts/postinstall.js",
+    "preuninstall": "bun scripts/preinstall.js"
+  },
+  "dependencies": {
+    "cross-env": "^10.1.0"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  },
+  "overrides": {
+    "@babel/core@<7.29.6": "^7.29.7",
+    "@hono/node-server@<2.0.5": "^2.0.5",
+    "body-parser@>=2.0.0 <2.3.0": "^2.3.0",
+    "brace-expansion@<1.1.16": "^1.1.16",
+    "brace-expansion@>=5.0.0 <5.0.9": "^5.0.9",
+    "dompurify@<3.4.13": "^3.4.13",
+    "esbuild@<0.28.1": "^0.28.1",
+    "fast-uri@>=3.0.0 <3.1.5": "^3.1.5",
+    "form-data@>=4.0.0 <4.0.6": "^4.0.6",
+    "hono@<4.12.34": "^4.12.34",
+    "ip-address@>=10.1.1 <10.2.2": "^10.2.2",
+    "js-cookie@<3.0.7": "^3.0.7",
+    "js-yaml@>=4.0.0 <4.3.1": "^4.3.1",
+    "mermaid@<11.16.1": "^11.16.1",
+    "nanoid@<3.3.17": "^3.3.17",
+    "postcss@<8.5.18": "^8.5.18",
+    "qs@<6.15.2": "^6.15.2",
+    "vite@>=7.0.0 <7.3.5": "^7.3.6",
+    "ws@<8.20.1": "^8.20.1"
+  }
+}

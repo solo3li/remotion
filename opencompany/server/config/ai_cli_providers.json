@@ -1,0 +1,54 @@
+{
+  "claude": {
+    "package_name": "@anthropic-ai/claude-code",
+    "package_version": "2.1.258",
+    "binary_name": "claude",
+    "login_argv": ["claude", "login"],
+    "auth_status_argv": ["claude", "--print", "-p", "ok"],
+    "ide_lock_env_var": "CLAUDE_IDE_LOCK",
+    "default_model": "claude-sonnet-4-6",
+    "default_max_turns": 10,
+    "default_max_budget_usd": 5.0,
+    "default_allowed_tools": "",
+    "default_permission_mode": "dontAsk",
+    "supports": [
+      "max_budget",
+      "max_turns",
+      "session_id",
+      "resume",
+      "mcp_runtime",
+      "json_cost",
+      "ide_lockfile"
+    ]
+  },
+  "codex": {
+    "package_name": "@openai/codex",
+    "binary_name": "codex",
+    "login_argv": ["codex", "login"],
+    "auth_status_argv": ["codex", "--version"],
+    "ide_lock_env_var": null,
+    "ide_lockfile_dir": null,
+    "default_model": "gpt-5.2-codex",
+    "default_sandbox": "workspace-write",
+    "default_ask_for_approval": "never",
+    "supports": [
+      "sandbox"
+    ]
+  },
+  "gemini": {
+    "package_name": "@google/gemini-cli",
+    "binary_name": "gemini",
+    "login_argv": ["gemini", "auth", "login"],
+    "auth_status_argv": ["gemini", "--version"],
+    "ide_lock_env_var": "GEMINI_IDE_LOCK",
+    "ide_lockfile_dir": "<tmpdir>/gemini/ide",
+    "default_model": "gemini-2.5-pro",
+    "supports": [
+      "session_id",
+      "resume",
+      "sandbox",
+      "mcp_runtime",
+      "ide_lockfile"
+    ]
+  }
+}

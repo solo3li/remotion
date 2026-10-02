@@ -1,0 +1,81 @@
+#!/bin/bash
+# OpenCompany VM startup script (rendered by Terraform `templatefile`).
+# Installs the toolchain (bun + uv; no Node, no npm), installs OpenCompany
+# with `bun add -g`, provisions the Python venvs, writes the login-gate env
+# file, and runs it under systemd via `company serve`.
+#
+# NOTE on syntax: Terraform renders this file with templatefile(), so any
+# dollar-brace sequence is a Terraform interpolation. Bash variables are
+# therefore written UNBRACED ($TOKEN, $OPENCOMPANY_BIN) so Terraform leaves them
+# alone. `set -x` is intentionally NOT used so secrets in the env file are
+# never echoed to the serial console.
+set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+echo "[${resource_name}] installing OpenCompany toolchain..."
+apt-get update
+apt-get install -y curl ca-certificates git unzip build-essential pkg-config libffi-dev libssl-dev
+# bun on a stable system path: the runtime for the `company` shim, the JS
+# executor sidecar and the plugin CLIs, and the installer for the package.
+export BUN_INSTALL=/usr/local
+curl -fsSL https://bun.sh/install | bash
+# uv on a stable system path (`company provision` below uses it to create and
+# sync the Python venvs).
+curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+# bun resolves its global "project" by walking up from $BUN_INSTALL/install/global
+# to the first package.json; give that dir its own manifest so a stray one
+# higher up can never hijack the install (docs-internal/errors.md #23).
+mkdir -p "$BUN_INSTALL/install/global"
+test -f "$BUN_INSTALL/install/global/package.json" || echo '{ "private": true }' > "$BUN_INSTALL/install/global/package.json"
+
+echo "[${resource_name}] installing OpenCompany package..."
+%{ if source_mode == "local" ~}
+TOKEN=$(curl -s -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" | python3 -c 'import sys, json; print(json.load(sys.stdin)["access_token"])')
+curl -fsS -H "Authorization: Bearer $TOKEN" -o /tmp/${resource_name}.tgz "https://storage.googleapis.com/storage/v1/b/${bucket}/o/${object}?alt=media"
+bun add -g /tmp/${resource_name}.tgz
+%{ else ~}
+bun add -g @zeenie-ai/opencompany@${version}
+%{ endif ~}
+# bun runs no lifecycle scripts for a global package; provision the Python
+# side now so the service's first start is warm. The shim lives in bun's
+# global bin dir ($BUN_INSTALL/bin) and knows its own package root.
+"$BUN_INSTALL/bin/company" provision
+
+echo "[${resource_name}] writing login-gate env..."
+mkdir -p /etc/${resource_name}
+cat > /etc/${resource_name}/opencompany.env <<'OPENCOMPANY_ENV_EOF'
+%{ for k, v in app_env ~}
+${k}=${v}
+%{ endfor ~}
+OPENCOMPANY_ENV_EOF
+chmod 600 /etc/${resource_name}/opencompany.env
+
+mkdir -p /var/lib/${resource_name}
+
+echo "[${resource_name}] installing systemd service..."
+OPENCOMPANY_BIN=$(command -v company || command -v machina)
+cat > /etc/systemd/system/${resource_name}.service <<SERVICE_EOF
+[Unit]
+Description=OpenCompany (single login-gated instance)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/${resource_name}/opencompany.env
+ExecStart=$OPENCOMPANY_BIN serve
+Restart=on-failure
+RestartSec=5
+# Must outlast the CLI's backend shutdown allowance with Temporal on
+# (backend_shutdown_grace_seconds in cli/_common.py), or systemd kills the
+# backend before it records a clean shutdown. cli/tests/test_backend_shutdown.py
+# checks it.
+TimeoutStopSec=150
+
+[Install]
+WantedBy=multi-user.target
+SERVICE_EOF
+
+systemctl daemon-reload
+systemctl enable --now ${resource_name}
+echo "[${resource_name}] OpenCompany is ready."

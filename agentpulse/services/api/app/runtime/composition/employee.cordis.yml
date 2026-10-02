@@ -1,0 +1,82 @@
+# 一个 AgentPulse 员工 = 一个 dsh runtime 进程 + 这份 composition。
+#
+# 为什么是"一进程一员工"而不是"一进程 N 员工"：
+# `@deepseek-ai/dsh-agent-presets` 未包含在 bundled Python runtime 里（P0 实测），
+# 所以 per-session 独立组装拿不到。同理 `dsh-persona` 也没有，人格只能走
+# `dsh-system-prompt` 的进程级 config —— 这恰好和"一进程一员工"自洽。
+# 要 N 员工同进程 + MCP，得换 npm 全量 runtime（见 ADR 0019 分层）。
+#
+# 员工专属值经环境变量注入，这份文件是所有员工共用的模板。
+
+- id: sdk-jsonrpc-server
+  name: '@deepseek-ai/dsh-sdk-jsonrpc-server'
+
+- id: agent-core
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    workspaceContext:
+      maxBytes: 65536
+
+- id: llm-deepseek
+  name: '@deepseek-ai/dsh-llm-deepseek'
+
+# 员工人格（SOUL）。进程级唯一，由 AGENTPULSE_PERSONA 注入。
+- id: system-prompt
+  name: '@deepseek-ai/dsh-system-prompt'
+  config:
+    persona: !!js process.env.AGENTPULSE_PERSONA ?? ''
+
+# 会话账本 = 员工记忆与履历的真相源（不再由我们建表重做一遍）。
+- id: sessions
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: !!js process.env.DSH_SESSION_ROOT ?? './.sessions'
+
+- id: session-checkpoints
+  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-local'
+  config:
+    cwd: !!js process.env.DSH_CWD ?? process.cwd()
+
+- id: fs-local
+  name: '@deepseek-ai/dsh-fs-local'
+  config:
+    cwd: !!js process.env.DSH_CWD ?? process.cwd()
+
+- id: tools
+  name: '@deepseek-ai/dsh-tools'
+
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+# 老板拍板门。dsh 侧 fail-closed：非 allowed-once 一律拒绝。
+# 员工在群里发问 / 请老板拍板 —— 同一个机制（北极星②）。
+- id: user-questions
+  name: '@deepseek-ai/dsh-user-questions'
+
+- id: tool-ask-user
+  name: '@deepseek-ai/dsh-tool-ask-user'
+
+- id: approval
+  name: '@deepseek-ai/dsh-user-approval'
+
+# AgentPulse 人机桥：补上 dsh 两个只定契约不给实现的接缝
+# （userQuestions 的 provider + approval/request 的 answerer）。
+# `name` 位置不能用 !!js（P0 实测：会得到 Object 而非 string），
+# 所以这里是占位符，由 dsh_client 启动时渲染成绝对路径。
+- id: agentpulse-bridge
+  name: '{{BRIDGE_PLUGIN}}'
+  config:
+    baseUrl: !!js process.env.AGENTPULSE_API_BASE
+    token: !!js process.env.AGENTPULSE_RUN_TOKEN ?? ''
+    agentId: !!js process.env.AGENTPULSE_AGENT_ID ?? null
+    conversationId: !!js process.env.AGENTPULSE_CONVERSATION_ID ?? null
+    debug: !!js process.env.AGENTPULSE_BRIDGE_DEBUG === '1'

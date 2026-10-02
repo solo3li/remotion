@@ -122,6 +122,12 @@ services:
       - "traefik.http.routers.elah.rule=PathPrefix(`/elah`)"
       - "traefik.http.routers.elah.entrypoints=web"
       - "traefik.http.services.elah.loadbalancer.server.port=3000"
+      - "traefik.http.routers.elah-compat.rule=PathPrefix(`/api/freesound`) || PathPrefix(`/api/pixabay`) || PathPrefix(`/api/pexels`) || PathPrefix(`/api/ai`) || Path(`/elah-mark.png`) || Path(`/sw.js`)"
+      - "traefik.http.routers.elah-compat.entrypoints=web"
+      - "traefik.http.routers.elah-compat.priority=200"
+      - "traefik.http.routers.elah-compat.middlewares=elah-prefix"
+      - "traefik.http.routers.elah-compat.service=elah"
+      - "traefik.http.middlewares.elah-prefix.addprefix.prefix=/elah"
     networks:
       - saas-net
 
@@ -169,10 +175,70 @@ services:
     networks:
       - saas-net
 
+  agentpulse:
+    build:
+      context: ./agentpulse
+    image: remotion-agentpulse:latest
+    container_name: saas_agentpulse
+    restart: always
+    environment:
+      - AGENTPULSE_HOME=/data
+      - AGENTPULSE_PORT=8787
+      - AGENTPULSE_PLATFORM=linux
+      - AGENTPULSE_DEEPSEEK_API_KEY=${AGENTPULSE_DEEPSEEK_API_KEY:-}
+    volumes:
+      - agentpulse_data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.agentpulse.rule=PathPrefix(`/agentpulse`)"
+      - "traefik.http.routers.agentpulse.entrypoints=web"
+      - "traefik.http.routers.agentpulse.priority=200"
+      - "traefik.http.services.agentpulse.loadbalancer.server.port=80"
+    networks:
+      - saas-net
+
+  ai-employees:
+    image: remotion-ai-employees:latest
+    container_name: saas_ai_employees
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-employees.rule=PathPrefix(`/ai-employees`)"
+      - "traefik.http.routers.ai-employees.entrypoints=web"
+      - "traefik.http.routers.ai-employees.priority=200"
+      - "traefik.http.services.ai-employees.loadbalancer.server.port=80"
+    networks:
+      - saas-net
+
+  opencompany:
+    image: remotion-opencompany:latest
+    container_name: saas_opencompany
+    restart: always
+    environment:
+      - DATA_DIR=/data
+      - HOME=/data/home
+      - OPENCOMPANY_ENV_FILE=/data/opencompany.env
+      - DEPLOYMENT_MODE=self_hosted
+      - PORT=5678
+      - OPENCOMPANY_CLIENT_DIST=/app/client/dist
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - opencompany_data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.opencompany.rule=PathPrefix(`/opencompany`) || PathPrefix(`/assets`) || Path(`/vite.svg`)"
+      - "traefik.http.routers.opencompany.entrypoints=web"
+      - "traefik.http.routers.opencompany.priority=200"
+      - "traefik.http.services.opencompany.loadbalancer.server.port=5678"
+    networks:
+      - saas-net
 
 volumes:
   minio_data:
+  agentpulse_data:
+  opencompany_data:
 
 networks:
   saas-net:
     driver: bridge
+

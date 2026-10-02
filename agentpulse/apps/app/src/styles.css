@@ -1,0 +1,1371 @@
+/* AgentPulse —— 见根目录 DESIGN.md。改这里之前先读那个文件。 */
+
+/* ─── Tokens ────────────────────────────────────────────────────────────
+   浅色是纯白、深色是纯中性近黑（chroma 恰好 0）。情绪住在主色和字体里，
+   不住在表面上 —— 把冷意同时放进主色和底色是 AI 的通病。            */
+
+:root {
+  --bg:        oklch(1 0 0);
+  --panel:     oklch(0.975 0.002 250);
+  --panel-2:   oklch(0.955 0.003 250);
+  --line:      oklch(0.905 0.004 250);
+  --line-soft: oklch(0.945 0.003 250);
+  --ink:       oklch(0.20 0.010 250);
+  --ink-2:     oklch(0.435 0.014 250);   /* 压暗一档，原来在大屏上太飘 */
+  --ink-3:     oklch(0.60 0.010 250);    /* 仅用于 ≥18px 或加粗 */
+  --primary:   oklch(0.525 0.150 250);
+  --primary-w: oklch(0.966 0.016 250);   /* wash —— 选中态文字压在它上面，量过 ≥4.5:1 */
+  --signal:    oklch(0.50 0.130 68);
+  --signal-w:  oklch(0.972 0.028 78);
+  --on-duty:   oklch(0.50 0.100 155);
+  --danger:    oklch(0.52 0.150 26);
+  --shadow-sheet: 0 8px 32px oklch(0.2 0.01 250 / 0.14);
+  /* 导航栏压在 --ink 上，用不透明值 —— 半透明既量不准也不好控 */
+  --nav-bg:   oklch(0.16 0.008 250);
+  --nav-ink:  oklch(0.72 0.010 250);
+  --nav-on:   oklch(0.99 0.002 250);
+  --nav-sel:  oklch(0.28 0.012 250);
+  /* 导航栏永远深底 —— 这个 signal 不跟主题翻转，否则浅色下
+     用深琥珀压深底，实测只有 3.15:1。 */
+  --nav-signal: oklch(0.80 0.125 78);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        oklch(0.09 0 0);
+    --panel:     oklch(0.128 0.004 250);
+    --panel-2:   oklch(0.165 0.005 250);
+    --line:      oklch(0.245 0.006 250);
+    --line-soft: oklch(0.185 0.005 250);
+    --ink:       oklch(0.95 0.004 250);
+    --ink-2:     oklch(0.735 0.012 250);
+    --ink-3:     oklch(0.575 0.010 250);
+    --primary:   oklch(0.72 0.130 250);
+    --primary-w: oklch(0.215 0.040 250);
+    --signal:    oklch(0.79 0.125 78);
+    --signal-w:  oklch(0.205 0.038 74);
+    --on-duty:   oklch(0.74 0.105 155);
+    --danger:    oklch(0.70 0.150 26);
+    --shadow-sheet: 0 8px 32px oklch(0 0 0 / 0.5);
+  --nav-bg:   oklch(0.135 0.006 250);
+  --nav-ink:  oklch(0.70 0.010 250);
+  --nav-on:   oklch(0.99 0.002 250);
+  --nav-sel:  oklch(0.26 0.012 250);
+  --nav-signal: oklch(0.80 0.125 78);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:        oklch(0.09 0 0);
+  --panel:     oklch(0.128 0.004 250);
+  --panel-2:   oklch(0.165 0.005 250);
+  --line:      oklch(0.245 0.006 250);
+  --line-soft: oklch(0.185 0.005 250);
+  --ink:       oklch(0.95 0.004 250);
+  --ink-2:     oklch(0.735 0.012 250);
+  --ink-3:     oklch(0.575 0.010 250);
+  --primary:   oklch(0.72 0.130 250);
+  --primary-w: oklch(0.215 0.040 250);
+  --signal:    oklch(0.79 0.125 78);
+  --signal-w:  oklch(0.205 0.038 74);
+  --on-duty:   oklch(0.74 0.105 155);
+  --danger:    oklch(0.70 0.150 26);
+  --shadow-sheet: 0 8px 32px oklch(0 0 0 / 0.5);
+  --nav-bg:   oklch(0.135 0.006 250);
+  --nav-ink:  oklch(0.70 0.010 250);
+  --nav-on:   oklch(0.99 0.002 250);
+  --nav-sel:  oklch(0.26 0.012 250);
+  --nav-signal: oklch(0.80 0.125 78);
+}
+
+:root {
+  /* 显式带 CJK —— 中英混排不靠系统兜底 */
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+  /* 固定 rem 阶，比例 1.125。产品 UI 不用 clamp。 */
+  /* 整体上调一档。原来正文 14px + 浅灰，在大屏上读起来像没做完。
+     参照飞书/钉钉的尺度：正文 15px，次要 13px，标签 12px。 */
+  --t-2xs: 0.75rem;
+  --t-xs:  0.8125rem;
+  --t-sm:  0.875rem;
+  --t-md:  0.9375rem;
+  --t-base: 1.0625rem;
+  --t-lg:  1.125rem;
+  --t-xl:  1.375rem;
+
+  /* 间距刻度。之前到处是 11/14/18/22 的裸数字 —— 那不是节奏，是没定过。 */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 22px;
+  --s-6: 32px;
+
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+
+  /* 语义 z 阶。不写 999。 */
+  --z-sticky: 10;
+  --z-sheet:  30;
+  --z-toast:  50;
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);   /* ease-out-quart */
+  --dur: 180ms;
+  --rail: 304px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--t-md);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+button, input, textarea { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+::placeholder { color: var(--ink-2); opacity: 1; }   /* 同样按 4.5:1，不用默认灰 */
+
+/* ─── Shell ──────────────────────────────────────────────────────────── */
+
+.shell {
+  display: grid;
+  grid-template-columns: 68px var(--rail) minmax(0, 1fr);
+  height: 100%;
+}
+
+/* 图标导航栏。左侧分两层 —— 导航选段，列表只显示那一段。
+   之前一长条把「在等你 + 房间 + 员工」混在一起，扫不出层级。 */
+.iconrail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 14px 0;
+  background: var(--nav-bg);
+  border-right: 1px solid var(--line);
+}
+.iconrail-brand {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: var(--s-3);
+}
+.iconrail-brand .brand { width: 20px; height: 20px; fill: var(--nav-on); }
+
+.navbtn {
+  position: relative;
+  width: 48px;
+  padding: 7px 0;
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--nav-ink);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.navbtn:hover { background: var(--nav-sel); color: var(--nav-on); }
+.navbtn[aria-current="true"] { background: var(--nav-sel); color: var(--nav-on); }
+.navbtn-label { display: block; font-size: var(--t-2xs); font-weight: 600; }
+.navbtn-n {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+.navbtn.waiting-dot { margin-top: auto; color: var(--nav-signal); }
+.navbtn.waiting-dot:hover { color: var(--nav-signal); }
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* min-width:0 + overflow:hidden —— 少了这两条，任何一个长文本子项都能把
+     整个侧栏撑破，溢出到主区上面去（实测撞到过）。 */
+  min-width: 0;
+  overflow: hidden;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* ─── 通用小件 ───────────────────────────────────────────────────────── */
+
+.eyebrow {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  text-transform: uppercase;
+}
+
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.count {
+  font-family: var(--mono);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: var(--signal);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+/* 头像：员工色 + 首字的实体方块。
+   参照飞书/钉钉那根头像列（扫视锚点），但**不用真人照片** —— 员工是 agent。
+   实心比描边有分量，这是「太空」那条评价要解的一半。 */
+.glyph {
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--panel-2);
+  font-size: var(--t-sm);
+  font-weight: 650;
+  color: var(--ink-2);
+  user-select: none;
+}
+.glyph[data-tinted="true"] {
+  background: oklch(0.94 0.045 var(--hue));
+  color: oklch(0.40 0.11 var(--hue));
+}
+:root:not([data-theme="light"]) .glyph[data-tinted="true"],
+:root[data-theme="dark"] .glyph[data-tinted="true"] {
+  background: oklch(0.29 0.055 var(--hue));
+  color: oklch(0.84 0.10 var(--hue));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .glyph[data-tinted="true"] {
+    background: oklch(0.29 0.055 var(--hue));
+    color: oklch(0.84 0.10 var(--hue));
+  }
+}
+.glyph[data-boss="true"] { background: var(--primary); color: var(--bg); }
+.glyph.lg { width: 40px; height: 40px; font-size: var(--t-base); border-radius: 10px; }
+.glyph.sm { width: 22px; height: 22px; font-size: var(--t-2xs); border-radius: 6px; }
+
+/* 在场：形状 + 文字，不只靠颜色 */
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+}
+.dot[data-state="on"]   { background: var(--on-duty); }
+.dot[data-state="busy"] { background: var(--primary); animation: pulse 1.8s var(--ease) infinite; }
+.dot[data-state="off"]  { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-3); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.8); }
+}
+
+.presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-2xs);
+  color: var(--ink-2);
+}
+
+/* ─── 侧栏 ───────────────────────────────────────────────────────────── */
+
+.rail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 18px 16px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.brand { flex: none; width: 17px; height: 17px; fill: var(--ink); }
+.rail-head h1 { margin: 0; font-size: var(--t-base); font-weight: 650; letter-spacing: -0.01em; }
+.rail-head .where { font-size: var(--t-2xs); color: var(--ink-2); font-family: var(--mono); }
+
+.rail-scroll { flex: 1; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; }
+
+.section { padding: 14px 16px 6px; }
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* 在等你 —— signal 全界面只有这一个用途 */
+.waiting {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--signal-w);
+  padding: 12px 16px;
+}
+.waiting .eyebrow { color: var(--signal); }
+.waiting ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  /* minmax(0, 1fr) 是关键：grid 的默认列宽是 auto = max-content，
+     所以行宽会被最长的一条文本撑开。上一版只加了 min-width:0 到子项，
+     没动列定义，结果整块横向溢出 610px（用 overflow:hidden 裁掉了，
+     看不见但布局还是错的 —— 那是遮，不是修）。 */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+.waiting li { min-width: 0; }
+.waiting button {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: transparent;
+  text-align: left;
+  font-size: var(--t-sm);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.waiting button:hover  { background: var(--bg); border-color: var(--line); }
+.waiting button:active { background: var(--panel-2); }
+.waiting .who { font-weight: 600; flex: none; min-width: 0; max-width: 6em;
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.waiting .what {
+  color: var(--ink-2);
+  /* min-width:0 是必需的 —— flex 子项默认 min-width:auto，
+     光有 ellipsis 不会生效，文字会把父容器顶开。 */
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 房间和人在同一个列表 —— 私聊就是参与者为 2 的房间（ADR 0020） */
+.room {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--dur) var(--ease);
+}
+.room:hover { background: var(--panel-2); }
+.room[aria-current="true"] { background: var(--primary-w); }
+.room[aria-current="true"] .room-name { color: var(--primary); }
+.room-name {
+  min-width: 0;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.room-sub {
+  grid-column: 2;
+  min-width: 0;
+  font-size: var(--t-2xs);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.staff {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--dur) var(--ease);
+}
+.staff:hover { background: var(--panel-2); }
+.staff-name { min-width: 0; overflow: hidden; text-overflow: ellipsis;
+              white-space: nowrap; font-size: var(--t-sm); font-weight: 550; }
+.staff-post { grid-column: 2; min-width: 0; overflow: hidden;
+              text-overflow: ellipsis; white-space: nowrap;
+              font-size: var(--t-2xs); color: var(--ink-2); }
+
+/* ─── 主区 ───────────────────────────────────────────────────────────── */
+
+.main-head {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 22px;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.main-head > div { min-width: 0; }
+.main-head h2 {
+  margin: 0;
+  min-width: 0;
+  font-size: var(--t-md);
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.main-head .roster {
+  display: block;
+  min-width: 0;
+  font-size: var(--t-2xs);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.back {
+  display: none;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: var(--r-md);
+  padding: 4px 9px;
+  font-size: var(--t-xs);
+  cursor: pointer;
+}
+
+.transcript {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 0 20px;
+}
+
+/* 消息块。参照飞书/钉钉：一根头像列做扫视锚点，名字行和正文分开。
+   不用气泡 —— 气泡是 cumora 那套，而且在长文本上浪费横向空间。
+   连续发言隐藏头像但**保持缩进对齐**，块结构才立得住。 */
+.line {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 0 var(--s-3);
+  padding: 2px var(--s-5);
+  animation: rise var(--dur) var(--ease);
+}
+.line:not([data-cont="true"]) { margin-top: var(--s-4); padding-top: var(--s-1); }
+.line-av { grid-row: 1 / span 2; }
+.line-who {
+  grid-column: 2;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin-bottom: 1px;
+}
+.line-who > b {
+  font-size: var(--t-sm);
+  font-weight: 650;
+  color: var(--ink);
+}
+.line-who[style] > b { color: oklch(0.42 0.11 var(--hue)); }
+:root:not([data-theme="light"]) .line-who[style] > b,
+:root[data-theme="dark"] .line-who[style] > b { color: oklch(0.80 0.10 var(--hue)); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .line-who[style] > b { color: oklch(0.80 0.10 var(--hue)); }
+}
+.line[data-boss="true"] .line-who > b { color: var(--primary); }
+.line-body {
+  grid-column: 2;
+  font-size: var(--t-md);
+  line-height: 1.62;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+.line-time {
+  font-family: var(--mono);
+  font-size: var(--t-2xs);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.line:hover { background: color-mix(in oklab, var(--panel) 60%, transparent); }
+
+/* 连续发言：头像位留空，正文继续对齐 */
+.line[data-cont="true"] .line-who { display: none; }
+.line[data-cont="true"] .line-body { grid-row: 1 / span 2; }
+
+/* 系统行（拉人进群这类）：不占头像列，整行压低 */
+.line[data-system="true"] { grid-template-columns: 32px minmax(0, 1fr); }
+.line[data-system="true"] .line-who { display: none; }
+.line[data-system="true"] .line-body {
+  grid-row: 1 / span 2;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.thinking {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+
+/* Ask 行。
+   琥珀色**只**标记「这是在等你的东西」—— 一个 eyebrow + 主操作，仅此而已。
+   之前铺了整块琥珀底加琥珀边，违反 DESIGN.md 自己写的「极度节省」。 */
+.ask {
+  margin: var(--s-4) var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--panel);
+  padding: var(--s-4) var(--s-4) var(--s-3);
+  max-width: 72ch;
+}
+
+.ask-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+.ask-head .eyebrow { color: var(--signal); text-transform: none; letter-spacing: 0.01em; }
+.ask-count {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+/* 多问题时才编号 —— 这里的顺序真的承载信息（还剩几个没答） */
+.ask-q-block {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 var(--s-3);
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--line-soft);
+}
+.ask-q-block:first-of-type { border-top: 0; padding-top: 0; }
+.ask-n {
+  font-family: var(--mono);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  padding-top: 3px;
+}
+.ask-q { font-size: var(--t-md); font-weight: 600; margin: 0; text-wrap: pretty; }
+
+/* 方案正文。他让你拍板，你得看得见拍的是什么。 */
+.ask-detail {
+  margin: var(--s-2) 0 0;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  font-size: var(--t-sm);
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre-wrap;
+  max-width: 66ch;
+}
+/* 声称要拍板却没附方案 —— 说出来，别让老板批一个看不见的东西 */
+.ask-nodetail {
+  margin: var(--s-2) 0 0;
+  font-size: var(--t-sm);
+  color: var(--signal);
+}
+
+.ask-opts { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+
+.opt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: var(--r-md);
+  padding: 7px 12px;
+  font-size: var(--t-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease),
+              color var(--dur) var(--ease);
+}
+.opt em {
+  font-style: normal;
+  font-size: var(--t-2xs);
+  color: var(--ink-2);
+  max-width: 30ch;
+}
+.opt:hover:not(:disabled) { border-color: var(--ink-3); }
+.opt[aria-pressed="true"] {
+  border-color: var(--primary);
+  background: var(--primary-w);
+  color: var(--primary);
+  font-weight: 600;
+}
+.opt[aria-pressed="true"] em { color: var(--primary); opacity: 0.8; }
+.opt[data-tone="approve"]:not([aria-pressed="true"]) { border-color: var(--ink-3); }
+.opt[data-tone="reject"]:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+.opt:disabled { opacity: 0.45; cursor: default; }
+
+.ask-free-in {
+  width: 100%;
+  margin-top: var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  padding: 7px 10px;
+  font-size: var(--t-sm);
+}
+.ask-free-in:focus-visible { border-color: var(--primary); outline: none; }
+
+.ask-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line-soft);
+}
+.ask-hint { font-size: var(--t-2xs); color: var(--ink-2); }
+
+@keyframes settle { from { transform: scale(0.995); } to { transform: none; } }
+
+/* ─── 输入 ───────────────────────────────────────────────────────────── */
+
+/* 输入区。原来是一条细线，没有分量 —— 飞书那里是一整块有边界的区域。 */
+.composer {
+  padding: var(--s-3) var(--s-5) var(--s-4);
+  padding-bottom: max(var(--s-4), env(safe-area-inset-bottom));
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+}
+.composer-box {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+  padding: var(--s-3) var(--s-3) var(--s-2);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.composer-box:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-w);
+}
+.composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  max-height: 200px;
+  resize: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: var(--t-md);
+  line-height: 1.6;
+}
+.composer textarea:focus-visible { outline: none; }
+.composer-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line-soft);
+}
+.composer .hint {
+  margin: 0;
+  font-size: var(--t-2xs);
+  color: var(--ink-2);
+}
+.composer .send { margin-left: auto; }
+
+.send {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--bg);
+  border-radius: var(--r-lg);
+  padding: 10px 16px;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--dur) var(--ease);
+}
+.send:hover:not(:disabled) { opacity: 0.88; }
+.send:disabled { opacity: 0.4; cursor: default; }
+
+/* ─── 员工抽屉（不是模态框 —— 只是个侧板） ────────────────────────────── */
+
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  background: oklch(0.2 0.01 250 / 0.28);
+  animation: fade var(--dur) var(--ease);
+}
+.sheet {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-sheet);
+  width: min(400px, 100%);
+  background: var(--bg);
+  border-left: 1px solid var(--line);
+  box-shadow: var(--shadow-sheet);
+  overflow-y: auto;
+  animation: slide var(--dur) var(--ease);
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.sheet-head h3 { margin: 0; font-size: var(--t-lg); font-weight: 650; }
+.sheet dl {
+  margin: 0;
+  padding: 6px 20px 20px;
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 0;
+}
+.sheet dt {
+  padding: 12px 0;
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--line-soft);
+}
+.sheet dd {
+  margin: 0;
+  padding: 12px 0;
+  font-size: var(--t-sm);
+  border-bottom: 1px solid var(--line-soft);
+  overflow-wrap: anywhere;
+}
+
+@keyframes fade  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide { from { transform: translateX(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ─── 空状态：教会界面，不是"暂无数据" ────────────────────────────────── */
+
+.empty {
+  flex: 1;
+  display: grid;
+  place-content: center;
+  justify-items: start;
+  gap: 10px;
+  padding: 40px 32px;
+  max-width: 60ch;
+}
+.empty h2 { margin: 0; font-size: var(--t-xl); font-weight: 650; letter-spacing: -0.015em; }
+.empty p { margin: 0; color: var(--ink-2); }
+.empty ol { margin: 6px 0 0; padding-left: 20px; color: var(--ink-2);
+             display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; }
+.empty code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--panel-2);
+  padding: 1px 5px;
+  border-radius: var(--r-sm);
+}
+
+.offline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--signal-w);
+  border-bottom: 1px solid var(--signal);
+  font-size: var(--t-xs);
+  color: var(--ink);
+}
+
+/* ─── 响应式是结构性的：折成单栏 + 返回导航 ──────────────────────────── */
+
+@media (max-width: 760px) {
+  .shell { grid-template-columns: 1fr; }
+  .iconrail {
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 6px 8px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .iconrail-brand { margin: 0 auto 0 0; width: 28px; height: 28px; }
+  .navbtn { width: auto; padding: 6px 12px; }
+  .navbtn.waiting-dot { margin-top: 0; }
+  .shell[data-view="room"] .iconrail { display: none; }
+  .rail { border-right: 0; }
+  .shell[data-view="room"] .rail { display: none; }
+  .shell[data-view="rail"] .main { display: none; }
+  .back { display: block; }
+  .line { padding-left: var(--s-4); padding-right: var(--s-4); }
+  .main-head, .composer { padding-left: 16px; padding-right: 16px; }
+  .ask { margin-left: 16px; margin-right: 16px; }
+  .sheet { width: 100%; border-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .dot[data-state="busy"] { animation: none; box-shadow: 0 0 0 2px var(--primary-w); }
+}
+
+/* ─── 内联创建表单 ─────────────────────────────────────────────────────
+   刻意不用模态框（DESIGN.md）。在侧栏原地展开，填完就地消失。          */
+
+.add {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  padding: 2px 6px;
+  margin-left: auto;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.add:hover { color: var(--primary); background: var(--primary-w); }
+.add[aria-expanded="true"] { color: var(--primary); }
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 4px 16px 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+  animation: rise var(--dur) var(--ease);
+}
+.form label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.form input,
+.form textarea,
+.form select {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  padding: 6px 8px;
+  font-size: var(--t-sm);
+  font-weight: 400;
+  color: var(--ink);
+  transition: border-color var(--dur) var(--ease);
+}
+.form textarea { min-height: 56px; resize: vertical; line-height: 1.5; }
+.form input:focus-visible,
+.form textarea:focus-visible,
+.form select:focus-visible { border-color: var(--primary); outline: none; }
+.form-row { display: flex; gap: 8px; align-items: center; }
+.form-row .send, .form-row .opt { padding: 6px 12px; font-size: var(--t-sm); }
+.form-note { font-size: var(--t-2xs); color: var(--ink-2); }
+.form-err { font-size: var(--t-2xs); color: var(--danger); }
+
+.pickers { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick {
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: var(--t-2xs);
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.pick:hover { border-color: var(--primary); }
+.pick[aria-pressed="true"] {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-w);
+  font-weight: 600;
+}
+
+/* 系统行（拉人进群这类可见事件） */
+
+
+/* ─── 聊天该有的东西 ───────────────────────────────────────────────────── */
+
+/* 日期分隔：一屏消息要分得出哪天 */
+.daymark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px 8px;
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.daymark::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line-soft);
+}
+
+/* 连续发言合并：同一个人接着说不重复挂名字，只在 hover 时露出时间。
+   这是聊天和「日志表格」最直观的区别。 */
+
+
+
+/* @提及：被叫到的人要跳出来 */
+.at {
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-w);
+  padding: 0 3px;
+  border-radius: 3px;
+}
+
+/* 乐观发送：先上屏，确认前压暗 */
+.line[data-pending="true"] { opacity: 0.55; }
+
+/* 未读 */
+.room[data-unread="true"] .room-name { font-weight: 700; }
+.room-badge {
+  grid-column: 3;
+  grid-row: 1;
+  font-family: var(--mono);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+  min-width: 18px;
+  text-align: center;
+  padding: 1px 5px;
+  border-radius: 99px;
+  background: var(--primary);
+  color: var(--bg);
+  font-weight: 600;
+}
+.room { grid-template-columns: 26px minmax(0, 1fr) auto; }
+.room-sub { grid-column: 2; }
+
+/* ⌘K 房间切换器。说了 Linear 参照，就得有键盘路径。 */
+.palette-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  background: oklch(0.2 0.01 250 / 0.3);
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding-top: 12vh;
+  animation: fade var(--dur) var(--ease);
+}
+.palette {
+  width: min(520px, calc(100vw - 32px));
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sheet);
+  overflow: hidden;
+  animation: slide var(--dur) var(--ease);
+}
+.palette input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  padding: 14px 16px;
+  font-size: var(--t-base);
+}
+.palette input:focus-visible { outline: none; }
+.palette ul { list-style: none; margin: 0; padding: 6px; max-height: 46vh; overflow-y: auto; }
+.palette li button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-md);
+  padding: 8px 10px;
+  font-size: var(--t-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.palette li[aria-selected="true"] button { background: var(--primary-w); color: var(--primary); }
+.palette .kind { margin-left: auto; font-size: var(--t-2xs); color: var(--ink-2); }
+.palette .none { padding: 18px 16px; font-size: var(--t-sm); color: var(--ink-2); }
+
+/* ─── 没填 key 时的横幅。员工集体沉默必须有解释。 ─────────────────────── */
+
+.needkey {
+  display: grid;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--signal-w);
+  border-bottom: 1px solid var(--signal);
+}
+.needkey b { font-size: var(--t-sm); }
+.needkey p { margin: 0; font-size: var(--t-2xs); color: var(--ink-2); }
+.needkey .row { display: flex; gap: 8px; }
+.needkey input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  padding: 6px 8px;
+}
+.needkey input:focus-visible { border-color: var(--primary); outline: none; }
+
+/* 消息段里的一行提醒。展开的表单在设置段。 */
+.needkey-line {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  padding: 9px var(--s-4);
+  border: 0;
+  border-bottom: 1px solid var(--signal);
+  background: var(--signal-w);
+  font-size: var(--t-xs);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.needkey-line:hover { background: color-mix(in oklab, var(--signal-w) 82%, var(--signal)); }
+.needkey-line .dot { box-shadow: inset 0 0 0 1.5px var(--signal); }
+.needkey-go {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--signal);
+  white-space: nowrap;
+}
+
+.keyline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-2xs);
+  color: var(--ink-2);
+}
+.keyline .tail { font-family: var(--mono); color: var(--ink); }
+.keyline button {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--t-2xs);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+}
+.keyline button:hover { color: var(--danger); background: var(--panel-2); }
+
+/* ─── 过程：他到底干了什么 ─────────────────────────────────────────────
+   默认收起。老板要的是「凭什么这么说」，不是一屏日志。               */
+
+.steps { margin-top: var(--s-1); }
+.steps-toggle {
+  border: 0;
+  background: transparent;
+  padding: 1px 0;
+  font-size: var(--t-2xs);
+  color: var(--ink-2);
+  cursor: pointer;
+  border-bottom: 1px dashed var(--line);
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.steps-toggle:hover { color: var(--primary); border-color: var(--primary); }
+.steps-toggle[aria-expanded="true"] { color: var(--ink-2); }
+
+.steps-list {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0 0 0 var(--s-3);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-1);
+  border-left: 1px solid var(--line);
+  animation: rise var(--dur) var(--ease);
+}
+.steps-list li {
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+.steps-list li::before {
+  content: attr(data-mark);
+}
+.steps-list li[data-kind="ask"] { color: var(--signal); }
+.steps-list code {
+  font-family: var(--mono);
+  font-size: var(--t-2xs);
+  color: var(--ink-3);
+  background: var(--panel-2);
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 62ch;
+}
+
+/* ─── @ 补全 ───────────────────────────────────────────────────────────
+   之前只有高亮和路由，得自己把名字打对 —— 那不叫做完。               */
+
+.atlist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  margin-bottom: var(--s-2);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--line-soft);
+}
+.atitem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 99px;
+  padding: 3px 10px 3px 4px;
+  font-size: var(--t-xs);
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.atitem:first-child { border-color: var(--primary); color: var(--primary); }
+.atitem:hover { border-color: var(--primary); color: var(--primary); }
+.atitem .glyph { width: 20px; height: 20px; font-size: var(--t-2xs); }
+
+/* ─── 说话人名字上色 ───────────────────────────────────────────────────
+   多人群里全灰的名字扫不出谁是谁。只染名字，不染背景。             */
+
+
+
+/* ─── 未读分割线 ───────────────────────────────────────────────────────
+   打开房间要知道上次看到哪儿。                                     */
+
+.newmark {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: var(--s-4) var(--s-5) var(--s-2);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--primary);
+}
+.newmark::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--primary);
+  opacity: 0.35;
+}
+
+/* ─── 消息 hover 操作 ─────────────────────────────────────────────────── */
+
+.line { position: relative; }
+.line-acts {
+  position: absolute;
+  top: -10px;
+  right: var(--s-5);
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur) var(--ease);
+}
+.line:hover .line-acts, .line:focus-within .line-acts { opacity: 1; pointer-events: auto; }
+.line-acts button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--t-2xs);
+  padding: 3px 7px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.line-acts button:hover { background: var(--panel-2); color: var(--ink); }
+
+/* ─── 加载更早的历史 ──────────────────────────────────────────────────── */
+
+.earlier {
+  display: block;
+  margin: var(--s-3) auto var(--s-2);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 99px;
+  padding: 4px 14px;
+  font-size: var(--t-2xs);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.earlier:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ─── ⌘K 里的消息命中 ─────────────────────────────────────────────────── */
+
+.palette li button .snip {
+  display: block;
+  font-size: var(--t-2xs);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 34ch;
+}
+.palette li button .stack { display: grid; grid-template-columns: minmax(0, 1fr);
+                            gap: 1px; min-width: 0; }
+.palette-group {
+  padding: 8px 12px 4px;
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+/* ─── Signature：在等你的东西停在输入框上方 ─────────────────────────────
+   这是这个产品**唯一独有**的东西：有个同事被你卡住了，只有你能解锁。
+   飞书钉钉里没有任何东西是这样的，所以 boldness 全花在这里，别处保持安静。
+
+   为什么停靠而不是排在消息流里：它卡的是**你**。卡住你的东西该在你手边，
+   不该被后面的消息刷走 —— 之前就是那样，滚两下就找不到了。            */
+
+.dock {
+  border-top: 2px solid var(--signal);
+  background: var(--signal-w);
+  max-height: 44vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  animation: dock-in 240ms var(--ease);
+}
+@keyframes dock-in {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.dock-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: 9px var(--s-5) 0;
+  flex: none;
+}
+.dock-head { padding-right: var(--s-5); }
+.dock-title {
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--signal);
+  letter-spacing: 0.01em;
+}
+.dock-hint { font-size: var(--t-2xs); color: var(--ink-2); }
+.dock-rest {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--signal);
+  font-weight: 600;
+}
+
+.dock-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: var(--s-2);
+}
+/* 停靠区里的卡片不再自己画边框 —— 停靠区本身就是那个容器 */
+.dock .ask {
+  border: 0;
+  background: transparent;
+  margin: 0 var(--s-5);
+  padding: var(--s-2) 0 var(--s-3);
+  max-width: 76ch;
+}
+
+.dock .ask-detail { background: var(--bg); border-color: color-mix(in oklab, var(--signal) 22%, transparent); }
+.dock .opt { background: var(--bg); }
+.dock .ask-free-in { background: var(--bg); }
+.dock .ask-foot { border-top-color: color-mix(in oklab, var(--signal) 22%, transparent); }
+
+/* transcript 里只留一个发生点的标记 */
+.askmark {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: var(--s-3) var(--s-5);
+  padding: 6px var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--signal-w);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+.askmark-go {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--signal);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .dock { max-height: 56vh; }
+  .dock-head { padding-left: var(--s-4); padding-right: var(--s-4); }
+  .dock .ask, .askmark { margin-left: var(--s-4); margin-right: var(--s-4); }
+}

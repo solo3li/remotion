@@ -1,0 +1,121 @@
+/**
+ * Normal mode ("Home"): the owner-facing screen where AI employees are hired
+ * and supervised (design_handoff_opencompany_home, "App shell (Normal
+ * mode)"). The team sidebar on the left; on the right the header and the
+ * current view, either hiring a new employee or one employee's page.
+ *
+ * The shell owns what spans views: the employee broadcasts that keep the
+ * team current, the orb behind the content, the Workspace dock on the
+ * right, and the Settings dialog. Connection actions open the app shell's
+ * shared credentials dialog. Switching views scrolls to the top and plays
+ * the view swap.
+ *
+ * The scrolling area is a column the view fills at least, so an employee's
+ * page can pin its message box to the bottom however short the conversation.
+ */
+
+import { useLayoutEffect, useRef, useState } from 'react';
+import { animate } from '@/lib/motion';
+import { cn } from '@/lib/utils';
+import { useShellDialogsStore, type CredentialsIntent } from '@/stores/shellDialogsStore';
+import { useApprovalLifecycle } from './approvals/data';
+import { useEmployeeLifecycle, useEmployeesQuery } from './data/employees';
+import { EmployeeView } from './employee/EmployeeView';
+import { HomeHeader } from './header/HomeHeader';
+import { HireView } from './hire/HireView';
+import { SPIKE, spikeOrb } from './orb/orb';
+import { OrbStage } from './orb/OrbStage';
+import { HomeSettings } from './settings/HomeSettings';
+import { HomeSidebar } from './sidebar/HomeSidebar';
+import { useHomeStore } from './state/homeStore';
+import { WorkspaceDock } from './workspace/WorkspaceDock';
+
+/** Scrolled further than this, the header draws its bottom border. */
+const HEADER_BORDER_AFTER_PX = 6;
+
+function useViewTitle(): string {
+  const view = useHomeStore((s) => s.view);
+  const { data: employees } = useEmployeesQuery();
+  if (view.kind !== 'employee') return 'New employee';
+  return employees?.find((employee) => employee.workflow_id === view.workflowId)?.name ?? 'Employee';
+}
+
+/** Whether the employee on screen asks before sending anything. */
+function AsksFirstNote({ workflowId }: { workflowId: string }) {
+  const { data: employees } = useEmployeesQuery();
+  const employee = employees?.find((item) => item.workflow_id === workflowId);
+  if (!employee) return null;
+  return (
+    <p className="m-0 pt-2 text-center text-xs text-fg-muted">
+      {employee.asks_first
+        ? `${employee.name} asks before sending anything on your behalf.`
+        : `${employee.name} doesn’t ask before sending anything on your behalf.`}
+    </p>
+  );
+}
+
+export default function HomeShell() {
+  useEmployeeLifecycle();
+  useApprovalLifecycle();
+  const view = useHomeStore((s) => s.view);
+  const title = useViewTitle();
+  const openCredentials = useShellDialogsStore((s) => s.openCredentials);
+  const openConnect = (providerId: string, intent: CredentialsIntent = 'connect') => {
+    spikeOrb(SPIKE.connect);
+    openCredentials({ providerId, intent });
+  };
+  const [scrolled, setScrolled] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
+  const viewKey = view.kind === 'employee' ? `employee:${view.workflowId}` : 'hire';
+
+  const shownKey = useRef(viewKey);
+  useLayoutEffect(() => {
+    if (shownKey.current === viewKey) return;
+    shownKey.current = viewKey;
+    scrollRef.current?.scrollTo({ top: 0 });
+    setScrolled(false);
+    animate(
+      viewRef.current,
+      [
+        { opacity: 0, transform: 'translateY(14px)', filter: 'blur(4px)' },
+        { opacity: 1, transform: 'none', filter: 'blur(0)' },
+      ],
+      { duration: 'view-swap', easing: 'spring' },
+    );
+  }, [viewKey]);
+
+  return (
+    <div className="relative flex min-h-0 flex-1 antialiased">
+      <HomeSidebar />
+      <main className="relative flex min-w-0 flex-1 flex-col">
+        <OrbStage />
+        <HomeHeader title={title} scrolled={scrolled} />
+        <div
+          ref={scrollRef}
+          onScroll={(event) => setScrolled(event.currentTarget.scrollTop > HEADER_BORDER_AFTER_PX)}
+          className="relative z-10 flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto"
+        >
+          {/* An employee's page ends at its pinned message box and one line under it. */}
+          <div
+            className={cn(
+              'mx-auto flex w-full max-w-(--w-home-content) flex-1 flex-col items-center px-6 pt-2',
+              view.kind === 'employee' ? 'pb-3' : 'pb-10',
+            )}
+          >
+            <div ref={viewRef} key={viewKey} className="flex w-full flex-1 flex-col items-center">
+              {view.kind === 'employee' ? (
+                <EmployeeView workflowId={view.workflowId} onConnect={openConnect} />
+              ) : (
+                <HireView onConnect={openConnect} />
+              )}
+            </div>
+            {view.kind === 'employee' && <AsksFirstNote workflowId={view.workflowId} />}
+          </div>
+        </div>
+      </main>
+      <WorkspaceDock onConnect={openConnect} />
+      <HomeSettings onConnect={openConnect} />
+    </div>
+  );
+}

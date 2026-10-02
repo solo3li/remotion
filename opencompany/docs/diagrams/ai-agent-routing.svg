@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1165 1010" width="100%" preserveAspectRatio="xMidYMid meet" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace">
+  <!-- Palette: OpenCompany dark-theme tokens (client/src/themes/dark.css surfaces/fg + light.css Dracula accents) -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e8eaed"/>
+    </marker>
+    <style>
+      .bg { fill: #0d0f13; }
+      .panel { fill: #15171c; stroke-width: 2; }
+      .p-cyan { stroke: #8be9fd; } .p-purple { stroke: #bd93f9; } .p-orange { stroke: #ffb86c; } .p-green { stroke: #50fa7b; } .p-pink { stroke: #ff79c6; }
+      .title { fill: #e8eaed; font-size: 20px; font-weight: 700; }
+      .h1 { fill: #e8eaed; font-size: 18px; font-weight: 700; }
+      .h2 { fill: #e8eaed; font-size: 14px; font-weight: 700; }
+      .sub { fill: #e8eaed; font-size: 12px; }
+      .small { fill: #e8eaed; font-size: 10px; }
+      .dim { fill: #9aa1ac; font-size: 10px; }
+      .label { fill: #f1fa8c; font-size: 11px; font-style: italic; }
+      .conn { stroke: #e8eaed; stroke-width: 1.8; fill: none; }
+      .conn-dot { stroke: #9aa1ac; stroke-width: 1.5; fill: none; stroke-dasharray: 4 4; }
+      .box { fill: #1b1e25; stroke-width: 1.5; }
+      .tier-label { fill: #9aa1ac; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+      .accent-cyan { fill: #8be9fd; } .accent-purple { fill: #bd93f9; } .accent-green { fill: #50fa7b; } .accent-orange { fill: #ffb86c; } .accent-pink { fill: #ff79c6; }
+          .title, .h1, .h2 { font-family: 'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    </style>
+  </defs>
+  <rect class="bg" width="1165" height="1010"/>
+
+  <!-- Title -->
+  <text class="title" x="582" y="42" text-anchor="middle">AI Service - Chat and Agent, both on native SDKs</text>
+  <text class="sub" x="582" y="66" text-anchor="middle">server/services/ai.py + services/agent_runtime.py + services/llm/</text>
+
+  <!-- Entry -->
+  <rect class="panel p-pink" x="452" y="85" width="260" height="60" rx="8"/>
+  <text class="h1" x="582" y="112" text-anchor="middle">AIService</text>
+  <text class="sub" x="582" y="133" text-anchor="middle">server/services/ai.py</text>
+
+  <!-- Entry arrows -->
+  <path class="conn" d="M 512 145 V 156 H 340 V 200" marker-end="url(#arrow)"/>
+  <text class="label" x="400" y="152" text-anchor="middle">chat completion</text>
+  <path class="conn" d="M 652 145 V 156 H 900 V 200" marker-end="url(#arrow)"/>
+  <text class="label" x="795" y="152" text-anchor="middle">agent with tools</text>
+
+  <!-- Chat panel (cyan) -->
+  <text class="h2 accent-cyan" x="44" y="172">Chat path - native SDKs, unified</text>
+  <rect class="panel p-cyan" x="40" y="180" width="510" height="490" rx="10"/>
+
+  <rect class="box p-cyan" x="60" y="200" width="470" height="58" rx="6"/>
+  <text class="h2" x="295" y="224" text-anchor="middle">execute_chat(...)</text>
+  <text class="sub" x="295" y="244" text-anchor="middle">Chat-model nodes: openaiChatModel, anthropicChatModel, ...</text>
+
+  <path class="conn" d="M 295 258 L 295 306" marker-end="url(#arrow)"/>
+  <text class="label" x="305" y="286">delegates (every provider)</text>
+
+  <rect class="box p-cyan" x="60" y="306" width="470" height="94" rx="6"/>
+  <text class="h2" x="295" y="330" text-anchor="middle">ChatUnifier.chat(provider=...)</text>
+  <text class="sub" x="295" y="350" text-anchor="middle">single facade - no per-provider branch</text>
+  <text class="sub" x="295" y="368" text-anchor="middle">resolves base_url / local proxy, filters incompatible models</text>
+  <text class="sub" x="295" y="386" text-anchor="middle">typed LLMError -&gt; NodeUserError (one WARN line, no trace)</text>
+
+  <path class="conn" d="M 295 400 L 295 448" marker-end="url(#arrow)"/>
+  <text class="label" x="305" y="428">lookup</text>
+
+  <rect class="box p-cyan" x="60" y="448" width="470" height="76" rx="6"/>
+  <text class="h2" x="295" y="472" text-anchor="middle">ProviderRegistry</text>
+  <text class="sub" x="295" y="492" text-anchor="middle">get_provider(name) -&gt; ProviderSpec.factory(...)</text>
+  <text class="small" x="295" y="510" text-anchor="middle">SDK exception classes resolved lazily - no SDK import at registration</text>
+
+  <path class="conn" d="M 295 524 L 295 556" marker-end="url(#arrow)"/>
+  <text class="label" x="305" y="544">spec.factory()</text>
+
+  <rect class="box p-cyan" x="60" y="556" width="470" height="100" rx="6"/>
+  <text class="h2" x="295" y="580" text-anchor="middle">Native providers</text>
+  <text class="sub" x="295" y="600" text-anchor="middle">own SDK: Anthropic &#183; OpenAI &#183; Gemini &#183; OpenRouter</text>
+  <text class="sub" x="295" y="618" text-anchor="middle">OpenAI-compatible via base_url: xAI, DeepSeek, Kimi, Mistral,</text>
+  <text class="sub" x="295" y="636" text-anchor="middle">Groq, Cerebras, Sarvam &#183; Ollama, LM Studio &#183; named endpoints</text>
+  <text class="small" x="295" y="652" text-anchor="middle">config-driven (llm_defaults.json): base_url, context, thinking, model listing</text>
+
+  <!-- Agent panel (purple) -->
+  <text class="h2 accent-purple" x="589" y="172">Agent path - native tool loop</text>
+  <rect class="panel p-purple" x="585" y="180" width="540" height="490" rx="10"/>
+
+  <rect class="box p-purple" x="605" y="200" width="500" height="76" rx="6"/>
+  <text class="h2" x="855" y="224" text-anchor="middle">execute_agent / execute_chat_agent</text>
+  <text class="sub" x="855" y="244" text-anchor="middle">aiAgent, chatAgent, specialized agents, team leads</text>
+  <text class="small" x="855" y="262" text-anchor="middle">claude_code / codex / rlm / vertex run through the CLI context bridge instead</text>
+
+  <path class="conn" d="M 855 276 L 855 312" marker-end="url(#arrow)"/>
+  <text class="label" x="865" y="298">prepare</text>
+
+  <rect class="box p-purple" x="605" y="312" width="500" height="94" rx="6"/>
+  <text class="h2" x="855" y="336" text-anchor="middle">Conversation + tools from the canvas</text>
+  <text class="sub" x="855" y="356" text-anchor="middle">Context node: stored conversation loaded per firing (RFC-0002)</text>
+  <text class="sub" x="855" y="374" text-anchor="middle">edges -&gt; skills, tools, teammates -&gt; provider-neutral ToolDef</text>
+  <text class="small" x="855" y="392" text-anchor="middle">skills load on demand through the Skill tool; Memory is a tool, not history</text>
+
+  <path class="conn" d="M 855 406 L 855 442" marker-end="url(#arrow)"/>
+  <text class="label" x="865" y="428">ChatUnifier per turn</text>
+
+  <rect class="box p-purple" x="605" y="442" width="500" height="132" rx="6"/>
+  <text class="h2" x="855" y="466" text-anchor="middle">run_native_agent_loop (plain async)</text>
+  <text class="sub" x="855" y="486" text-anchor="middle">loop: chat -&gt; tool_calls? dispatch -&gt; tool results -&gt; chat</text>
+  <text class="sub" x="855" y="504" text-anchor="middle">max_iterations cap (AGENT_RECURSION_LIMIT, default 200)</text>
+  <text class="sub" x="855" y="522" text-anchor="middle">team leads delegate through Task Manager (durable child runs)</text>
+  <text class="sub" x="855" y="540" text-anchor="middle">tools rebound after Agent Builder edits the canvas mid-task</text>
+  <text class="sub" x="855" y="558" text-anchor="middle">image refs hydrated per call (vision-gated) &#183; saved every turn</text>
+
+  <text class="dim" x="855" y="600" text-anchor="middle">Deployed runs: the same loop as Temporal AgentWorkflow activities</text>
+  <text class="dim" x="855" y="616" text-anchor="middle">(agent.execute_llm_step retried with backoff, tool calls as per-type activities);</text>
+  <text class="dim" x="855" y="632" text-anchor="middle">threshold compaction keeps the system prompt verbatim and summarises into a user turn</text>
+
+  <!-- Convergence arrows -->
+  <path class="conn" d="M 295 656 V 682 H 462 V 726" marker-end="url(#arrow)"/>
+  <text class="label" x="307" y="700">LLMResponse</text>
+  <path class="conn" d="M 855 640 V 682 H 702 V 726" marker-end="url(#arrow)"/>
+  <text class="label" x="867" y="664">final message</text>
+
+  <!-- Shared panel (green) -->
+  <text class="h2 accent-green" x="582" y="702" text-anchor="middle">Shared convergence</text>
+  <rect class="panel p-green" x="282" y="710" width="600" height="268" rx="10"/>
+
+  <rect class="box p-green" x="302" y="726" width="560" height="76" rx="6"/>
+  <text class="h2" x="582" y="750" text-anchor="middle">Normalized response</text>
+  <text class="sub" x="582" y="770" text-anchor="middle">content &#183; thinking &#183; tool_calls &#183; usage &#183; model &#183; finish_reason</text>
+  <text class="sub" x="582" y="788" text-anchor="middle">services/llm/protocol.py - one MessageWire standard on both paths</text>
+
+  <path class="conn" d="M 582 802 L 582 850" marker-end="url(#arrow)"/>
+  <text class="label" x="594" y="830">token/cost tracking after each turn</text>
+
+  <rect class="box p-green" x="302" y="850" width="560" height="112" rx="6"/>
+  <text class="h2" x="582" y="874" text-anchor="middle">Shared infrastructure</text>
+  <text class="sub" x="582" y="894" text-anchor="middle">compaction.py: usage aggregation + summary compaction at</text>
+  <text class="sub" x="582" y="912" text-anchor="middle">COMPACTION_RATIO (default 0.8) x model context length</text>
+  <text class="sub" x="582" y="930" text-anchor="middle">pricing.py: USD cost from config/pricing.json</text>
+  <text class="sub" x="582" y="948" text-anchor="middle">model_registry.py: context length, max output, reasoning flags</text>
+</svg>

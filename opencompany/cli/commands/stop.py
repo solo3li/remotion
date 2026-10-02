@@ -1,0 +1,76 @@
+"""``company stop`` -- replaces ``scripts/stop.js``.
+
+Kills configured ports + orphaned OpenCompany processes + the Temporal
+binary. Same exit-code semantics as the JS version: 0 on full success,
+1 if any port is still in use afterward.
+"""
+
+from __future__ import annotations
+
+import time
+
+import typer
+
+from cli._common import backend_shutdown_grace_seconds, free_all_ports, preflight
+from cli.colors import console
+from cli.config import load_dev_overrides
+from cli.platform_ import platform_name, user_data_dir
+from cli.ports import (
+    kill_by_pattern,
+    kill_orphaned_opencompany_processes,
+)
+
+
+def stop_command() -> None:
+    # Same port layout ``company dev`` frees (client 5678 + backend 5679);
+    # production binds only 5678, which that set already covers.
+    load_dev_overrides()
+    cfg, root = preflight()
+
+    console.print()
+    console.print("[bold]Stopping OpenCompany services...[/]")
+    console.print(f"Platform: {platform_name()}")
+    console.print(f"Ports:    {', '.join(str(p) for p in cfg.all_ports)}")
+    console.print("Temporal: enabled" if cfg.temporal_enabled else "Temporal: disabled")
+    console.print()
+
+    all_stopped = True
+    for port, result in zip(cfg.all_ports, free_all_ports(cfg)):
+        status = "[green]\\[OK][/]" if result.port_free else "[red]\\[!!][/]"
+        if result.port_free:
+            if result.killed_pids:
+                msg = f"Killed {len(result.killed_pids)} process(es)"
+            else:
+                msg = "Free"
+        else:
+            msg = "Warning: Port still in use"
+            all_stopped = False
+        console.print(f"{status} Port {port}: {msg}")
+        if result.killed_pids:
+            console.print(f"    PIDs: {', '.join(str(p) for p in result.killed_pids)}")
+
+    # Only this installation's Temporal server: its binary and database live
+    # in the data directory, which keeps another checkout's server (and any
+    # process whose arguments merely mention "temporal") out of the kill.
+    temporal_pids = kill_by_pattern("temporal", within=user_data_dir())
+    if temporal_pids:
+        console.print(
+            f"[green]\\[OK][/] Temporal: Killed {len(temporal_pids)} process(es)"
+        )
+
+    orphaned_pids = kill_orphaned_opencompany_processes(
+        str(root), backend_graceful_timeout=backend_shutdown_grace_seconds(cfg)
+    )
+    if orphaned_pids:
+        time.sleep(0.2)  # let DB locks release
+        console.print(
+            f"[green]\\[OK][/] Orphaned: Killed {len(orphaned_pids)} OpenCompany process(es)"
+        )
+        console.print(f"    PIDs: {', '.join(str(p) for p in orphaned_pids)}")
+
+    console.print()
+    if all_stopped:
+        console.print("[green]All services stopped.[/]")
+    else:
+        console.print("[yellow]Warning: Some ports may still be in use.[/]")
+        raise typer.Exit(code=1)

@@ -1,0 +1,202 @@
+/* ============================================================================
+ * themes/light.css — light theme new-contract tokens.
+ *
+ * Mirrors the existing :root block in index.css (which still owns the
+ * shadcn HSL-triplet tokens). This file ADDS the new full-colour
+ * contract — surface / foreground / accent / typography / motion —
+ * scoped to `:root[data-theme="light"]` AND the unscoped `:root` so
+ * the contract is satisfied even when no data-theme attribute is set.
+ *
+ * Existing Tailwind utilities (bg-card, text-foreground, border-border,
+ * bg-action-save-soft, etc.) keep working unchanged because the shadcn
+ * tokens stay live in index.css.
+ *
+ * New utilities exposed by index.css `@theme inline`:
+ *   bg-bg-app, bg-bg-panel, bg-bg-elevated, bg-bg-canvas, bg-bg-input,
+ *   bg-bg-hover, bg-bg-active, bg-bg-overlay,
+ *   text-fg-default, text-fg-muted, text-fg-faint, text-fg-on-accent,
+ *   border-default, border-strong, border-focus,
+ *   font-display, font-body (font-mono comes from index.css),
+ *   tracking-display, rounded-pill.
+ * ============================================================================ */
+
+:root,
+:root[data-theme="light"] {
+  /* Surfaces (light mode — light grey palette consistent with existing values) */
+  --bg-app: #f5f7fa;
+  --bg-panel: #fafbfc;
+  --bg-canvas: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-input: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(0, 0, 0, 0.06);
+  --bg-overlay: rgba(0, 0, 0, 0.45);
+
+  /* Borders */
+  --border-default: #d1d5db;
+  --border-strong: #9ca3af;
+  --border-focus: #3b82f6;
+  --ornament-frame: none;
+
+  /* Foreground */
+  --fg-default: #1a1d21;
+  --fg-muted: #4b5563;
+  --fg-faint: #9ca3af;
+  --fg-on-accent: #ffffff;
+  --fg-on-success: #ffffff;
+  --fg-on-danger: #ffffff;
+  --fg-on-warning: #1a1d21;
+
+  /* Type — system stack for light/dark; Renaissance + Cyber override */
+  --font-display: 'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  --type-scale-base: 14px;
+  --type-tracking-display: 0;
+  --type-uppercase: none;
+
+  /* Geometry — match existing shadcn radius (0.5rem / 8px) */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* Motion — match base defaults (smooth) */
+  --dur-fast: 90ms;
+  --dur-default: 180ms;
+  --dur-slow: 320ms;
+  --ease-default: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease-emphasis: cubic-bezier(0.6, -0.05, 0.3, 1.4);
+  --motion-style: smooth;
+  --sound-pack: parchment;
+
+  /* Cursor + scrollbar */
+  --cursor-default: auto;
+  --cursor-pointer: pointer;
+  --scrollbar-track: #eef1f5;
+  --scrollbar-thumb: #d1d5db;
+
+  /* ── shadcn semantic tokens (light) — hex; bridged to Tailwind via
+   * index.css @theme inline. These are the light defaults; dark.css
+   * overrides them under .dark / [data-theme="dark"]. ───────────────── */
+  --background: #f5f7fa;
+  --foreground: #1a1d21;
+  --card: #ffffff;
+  --card-foreground: #1a1d21;
+  --popover: #ffffff;
+  --popover-foreground: #1a1d21;
+  --surface-card: #ffffff;            /* node / data card fill */
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #eef1f5;
+  --secondary-foreground: #1a1d21;
+  --muted: #eef1f5;
+  --muted-foreground: #4b5563;
+  --accent: #7c3aed;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #059669;
+  --warning: #d97706;
+  --info: #0891b2;
+  --border: #d1d5db;
+  --input: #d1d5db;
+  --ring: #3b82f6;
+
+  /* ── Dracula vibrant accents — identical in light + dark; defined on
+   * the bare :root so they apply globally (dark.css does not redefine
+   * them). Action / node role tokens below tint these. ──────────────── */
+  --dracula-green: #50fa7b;
+  --dracula-purple: #bd93f9;
+  --dracula-pink: #ff79c6;
+  --dracula-cyan: #8be9fd;
+  --dracula-red: #ff5555;
+  --dracula-orange: #ffb86c;
+  --dracula-yellow: #f1fa8c;
+  --dracula-selection: #44475a;
+  --dracula-current-line: #383a4a;
+  --dracula-comment: #6272a4;
+
+  /* ── Node role tokens — base + soft + border. color-mix references the
+   * dracula palette and base.css --tint-* scale; no inline %. Identical
+   * across light/dark, so defined globally here. ───────────────────── */
+  --node-agent:           var(--dracula-purple);
+  --node-agent-soft:      color-mix(in srgb, var(--dracula-purple) var(--tint-soft), transparent);
+  --node-agent-border:    color-mix(in srgb, var(--dracula-purple) var(--tint-border), transparent);
+  --node-model:           var(--dracula-cyan);
+  --node-model-soft:      color-mix(in srgb, var(--dracula-cyan) var(--tint-soft), transparent);
+  --node-model-border:    color-mix(in srgb, var(--dracula-cyan) var(--tint-border), transparent);
+  --node-skill:           var(--dracula-green);
+  --node-skill-soft:      color-mix(in srgb, var(--dracula-green) var(--tint-soft), transparent);
+  --node-skill-border:    color-mix(in srgb, var(--dracula-green) var(--tint-border), transparent);
+  --node-tool:            var(--dracula-green);
+  --node-tool-soft:       color-mix(in srgb, var(--dracula-green) var(--tint-soft), transparent);
+  --node-tool-border:     color-mix(in srgb, var(--dracula-green) var(--tint-border), transparent);
+  --node-trigger:         var(--dracula-pink);
+  --node-trigger-soft:    color-mix(in srgb, var(--dracula-pink) var(--tint-soft), transparent);
+  --node-trigger-border:  color-mix(in srgb, var(--dracula-pink) var(--tint-border), transparent);
+  --node-workflow:        var(--dracula-orange);
+  --node-workflow-soft:   color-mix(in srgb, var(--dracula-orange) var(--tint-soft), transparent);
+  --node-workflow-border: color-mix(in srgb, var(--dracula-orange) var(--tint-border), transparent);
+
+  /* ── Action role tokens — base / -soft / -hover / -border / -ink.
+   * Tints reference base.css --tint-action-*; -ink is the readable text
+   * colour (light: a darkened accent; dark.css overrides to the raw
+   * accent). ActionButton reads text-action-X-ink. ─────────────────── */
+  --action-run:           var(--dracula-green);
+  --action-run-soft:      color-mix(in srgb, var(--dracula-green) var(--tint-action-soft), transparent);
+  --action-run-hover:     color-mix(in srgb, var(--dracula-green) var(--tint-action-hover), transparent);
+  --action-run-border:    color-mix(in srgb, var(--dracula-green) var(--tint-action-border), transparent);
+  --action-run-ink:       #15803d;
+  --action-stop:          var(--dracula-pink);
+  --action-stop-soft:     color-mix(in srgb, var(--dracula-pink) var(--tint-action-soft), transparent);
+  --action-stop-hover:    color-mix(in srgb, var(--dracula-pink) var(--tint-action-hover), transparent);
+  --action-stop-border:   color-mix(in srgb, var(--dracula-pink) var(--tint-action-border), transparent);
+  --action-stop-ink:      #be185d;
+  --action-save:          var(--dracula-cyan);
+  --action-save-soft:     color-mix(in srgb, var(--dracula-cyan) var(--tint-action-soft), transparent);
+  --action-save-hover:    color-mix(in srgb, var(--dracula-cyan) var(--tint-action-hover), transparent);
+  --action-save-border:   color-mix(in srgb, var(--dracula-cyan) var(--tint-action-border), transparent);
+  --action-save-ink:      #0e7490;
+  --action-config:        var(--dracula-orange);
+  --action-config-soft:   color-mix(in srgb, var(--dracula-orange) var(--tint-action-soft), transparent);
+  --action-config-hover:  color-mix(in srgb, var(--dracula-orange) var(--tint-action-hover), transparent);
+  --action-config-border: color-mix(in srgb, var(--dracula-orange) var(--tint-action-border), transparent);
+  --action-config-ink:    #c2410c;
+  --action-secret:        var(--dracula-yellow);
+  --action-secret-soft:   color-mix(in srgb, var(--dracula-yellow) var(--tint-action-soft), transparent);
+  --action-secret-hover:  color-mix(in srgb, var(--dracula-yellow) var(--tint-action-hover), transparent);
+  --action-secret-border: color-mix(in srgb, var(--dracula-yellow) var(--tint-action-border), transparent);
+  --action-secret-ink:    #a16207;
+  --action-tools:         var(--dracula-purple);
+  --action-tools-soft:    color-mix(in srgb, var(--dracula-purple) var(--tint-action-soft), transparent);
+  --action-tools-hover:   color-mix(in srgb, var(--dracula-purple) var(--tint-action-hover), transparent);
+  --action-tools-border:  color-mix(in srgb, var(--dracula-purple) var(--tint-action-border), transparent);
+  --action-tools-ink:     #7c3aed;
+}
+
+/* Code & syntax tokens (code editor / JSON output / variable tree) */
+:root,
+:root[data-theme="light"] {
+  /* Editor chrome */
+  --code-bg: #f6f7f9;                /* code surface — faint grey, distinct from white card */
+  --code-gutter-bg: #eef0f3;         /* line-number gutter */
+  --code-gutter-fg: #aab1bd;         /* line numbers */
+  --code-line-active: rgba(37, 99, 235, 0.06);  /* active line highlight */
+  --code-selection: rgba(37, 99, 235, 0.18);
+  --code-caret: var(--primary);
+  --code-border: var(--border-default);
+
+  /* Syntax (light) */
+  --code-text: #1f2328;             /* plain text / identifiers */
+  --code-comment: #6e7781;          /* comments */
+  --code-keyword: #8250df;          /* def, return, const, if … (purple) */
+  --code-string: #0a7d33;           /* strings (green) */
+  --code-number: #0550ae;           /* numbers (blue) */
+  --code-boolean: #cf222e;          /* true/false/null (red) */
+  --code-function: #6639ba;         /* function names */
+  --code-property: #0550ae;         /* object keys / attributes */
+  --code-operator: #cf222e;         /* + - = => : (red-ish) */
+  --code-punctuation: #57606a;      /* braces, commas */
+  --code-tag: #116329;              /* JSON keys / HTML tags (green) */
+}

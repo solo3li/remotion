@@ -1,0 +1,103 @@
+"""Plugins for the 'whatsapp' palette group.
+
+Public surface:
+    WhatsAppRuntime          - edgymeow Go binary supervisor
+    get_whatsapp_runtime()   - singleton accessor (lazy-init via classmethod)
+
+Two self-registrations happen on package import:
+
+1. The Go-binary supervisor (``WhatsAppRuntime``) is registered with
+   :mod:`services._supervisor`, so the FastAPI lifespan teardown
+   reaches it via ``shutdown_all_supervisors()``.
+
+2. The WebSocket handler dispatch table (``WS_HANDLERS`` in
+   :mod:`._handlers`) is registered with
+   :mod:`services.ws_handler_registry`, so the central WS router in
+   ``routers/websocket.py`` picks up every ``whatsapp_*`` message type
+   without per-plugin imports. Same pattern as the telegram reference
+   plugin.
+"""
+
+from services._supervisor import register_supervisor
+from services.deployment.canary_registry import register_canary_trigger_type
+from services.event_waiter import register_filter_builder
+from services.node_output_schemas import register_output_schema
+from services.plugin.social_provider_registry import register_social_send_handler
+from services.status_broadcaster import register_service_refresh
+from services.ws_handler_registry import (
+    register_option_loader,
+    register_ws_handlers,
+)
+
+from ._credentials import WhatsAppCredential  # noqa: F401 — side-effect register
+from ._events import (  # noqa: F401 — re-exported for callers
+    broadcast_whatsapp_history_synced,
+    broadcast_whatsapp_message,
+    broadcast_whatsapp_newsletter,
+    broadcast_whatsapp_status,
+)
+from ._filters import build_filter as build_whatsapp_filter
+from ._handlers import WS_HANDLERS
+from ._option_loaders import load_channels, load_group_members, load_groups
+from ._refresh import refresh_whatsapp_status
+from ._runtime import WhatsAppRuntime, get_whatsapp_runtime
+from ._social import social_send_adapter
+
+# Supervisor: ensures shutdown_all_supervisors() reaches us.
+# get_instance() constructs the singleton once (lazy in spawn, not here).
+register_supervisor(WhatsAppRuntime.get_instance())
+
+# WebSocket handlers: 19 message types (status / qr / send / restart /
+# groups / newsletters / chat_history / rate_limit_* / mark_read /
+# typing / presence / diagnostics / stop). Idempotent on re-import.
+register_ws_handlers(WS_HANDLERS)
+
+# Service-status refresh callback (Wave 11.I, milestone J) -- the
+# broadcaster fans out to this on lifespan startup instead of
+# hardcoding the call.
+register_service_refresh(refresh_whatsapp_status)
+
+# Trigger-event filter builder (Wave 11.I, milestone K) -- moved out
+# of services/event_waiter.py so the central FILTER_BUILDERS table
+# carries no plugin-specific code.
+register_filter_builder("whatsappReceive", build_whatsapp_filter)
+
+# loadOptionsMethod loaders (Wave 11.I, milestone M.1) -- self-register
+# into services.ws_handler_registry's option-loader registry, sibling to
+# the WS-handler / router registries.
+register_option_loader("whatsappGroups", load_groups)
+register_option_loader("whatsappChannels", load_channels)
+register_option_loader("whatsappGroupMembers", load_group_members)
+
+# Wave 12 C1 rollout #4: opt whatsappReceive into the
+# TriggerListenerWorkflow consumer path. Producer side:
+# broadcast_whatsapp_message(direction="received", ...) in ._events.py
+# fans out via services.events.dispatch.emit; emit() is gated by
+# Settings.event_framework_enabled so the legacy path stays default.
+# See services/deployment/canary_registry.py.
+register_canary_trigger_type("whatsappReceive", "com.opencompany.whatsapp.message.received")
+
+# Wave 12 C4 sub-piece A: opt this plugin into the social-provider
+# registry so the social node dispatches by platform identifier
+# instead of cross-importing _service.handle_whatsapp_send. See
+# services/plugin/social_provider_registry.py.
+#
+# The registered callable is the adapter, not handle_whatsapp_send itself:
+# socialSend's payload shape is not whatsappSend's, and translating between
+# them is this plugin's job rather than the social node's. See ._social.
+register_social_send_handler("whatsapp", social_send_adapter)
+
+# Output schemas for the FE variable panel — self-registered so all
+# whatsapp code stays in this folder (same pattern as telegram).
+from .whatsapp_db import WhatsAppDbOutput
+from .whatsapp_receive import WhatsAppReceiveOutput
+from .whatsapp_send import WhatsAppSendOutput
+
+register_output_schema("whatsappReceive", WhatsAppReceiveOutput)
+register_output_schema("whatsappSend", WhatsAppSendOutput)
+register_output_schema("whatsappDb", WhatsAppDbOutput)
+
+__all__ = [
+    "WhatsAppRuntime",
+    "get_whatsapp_runtime",
+]

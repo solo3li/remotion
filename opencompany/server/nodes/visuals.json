@@ -1,0 +1,410 @@
+{
+  "agentBuilder": {
+    "icon": "🛠️",
+    "skill": "agent-builder-skill"
+  },
+  "aiAgent": {
+    "icon": "🤖"
+  },
+  "ai_employee": {
+    "icon": "👥"
+  },
+  "airplaneModeControl": {
+    "icon": "✈️"
+  },
+  "android": {
+    "icon": "lucide:Smartphone",
+    "color": "#22c55e"
+  },
+  "android_agent": {
+    "icon": "📱"
+  },
+  "android_tool": {
+    "skill": "android-phone-skill"
+  },
+  "anthropicChatModel": {
+    "icon": "lobehub:claude"
+  },
+  "apifyActor": {
+    "skill": "apify-skill"
+  },
+  "tikhubAction": {
+    "skill": "tikhub-skill"
+  },
+  "appLauncher": {
+    "icon": "🚀",
+    "skill": "app-launcher-skill"
+  },
+  "appList": {
+    "icon": "📋",
+    "skill": "app-list-skill"
+  },
+  "audioAutomation": {
+    "icon": "🔊",
+    "skill": "audio-skill"
+  },
+  "autonomous_agent": {
+    "icon": "🎯"
+  },
+  "batteryMonitor": {
+    "icon": "🔋",
+    "skill": "battery-skill"
+  },
+  "bluetoothAutomation": {
+    "icon": "🔵",
+    "skill": "bluetooth-skill"
+  },
+  "braveSearch": {
+    "skill": "brave-search-skill"
+  },
+  "browser": {
+    "skill": "browser-skill"
+  },
+  "calculatorTool": {
+    "icon": "🔢"
+  },
+  "cameraControl": {
+    "icon": "📷",
+    "skill": "camera-skill"
+  },
+  "cerebrasChatModel": {
+    "icon": "lobehub:cerebras"
+  },
+  "chatAgent": {
+    "icon": "🧞"
+  },
+  "chatTrigger": {
+    "icon": "💬"
+  },
+  "claude_code_agent": {
+    "icon": "lobehub:Claude"
+  },
+  "cloudflare": {
+    "icon": "lobehub:Cloudflare",
+    "color": "#F38020"
+  },
+  "cloudflareAction": {
+    "icon": "lobehub:Cloudflare",
+    "skill": "cloudflare-skill"
+  },
+  "codex_agent": {
+    "icon": "lobehub:OpenAI"
+  },
+  "coding_agent": {
+    "icon": "💻"
+  },
+  "console": {
+    "icon": "🖥️"
+  },
+  "consumer_agent": {
+    "icon": "🛒"
+  },
+  "crawleeScraper": {
+    "icon": "🕷",
+    "skill": "crawlee-scraper-skill"
+  },
+  "cronScheduler": {
+    "icon": "⏰",
+    "skill": "cron-scheduler-skill"
+  },
+  "currentTimeTool": {
+    "icon": "🕐"
+  },
+  "data": {
+    "icon": "🗂️",
+    "color": "#50fa7b"
+  },
+  "dataSource": {
+    "icon": "🗂️"
+  },
+  "vision": {
+    "icon": "👁️",
+    "color": "#bd93f9"
+  },
+  "visionAnalyze": {
+    "icon": "👁️"
+  },
+  "deepseekChatModel": {
+    "icon": "lobehub:deepseek"
+  },
+  "deviceStateAutomation": {
+    "icon": "⚙️"
+  },
+  "documentParser": {
+    "icon": "📄"
+  },
+  "duckduckgoSearch": {
+    "skill": "duckduckgo-search-skill"
+  },
+  "embeddingGenerator": {
+    "icon": "🧠"
+  },
+  "environmentalSensors": {
+    "icon": "🌡️",
+    "skill": "environmental-skill"
+  },
+  "fileDownloader": {
+    "icon": "⬇️"
+  },
+  "fileHandler": {
+    "icon": "📁"
+  },
+  "fileModify": {
+    "icon": "✏️",
+    "skill": "file-modify-skill"
+  },
+  "fileRead": {
+    "icon": "📄",
+    "skill": "file-read-skill"
+  },
+  "fsSearch": {
+    "icon": "🔍",
+    "skill": "fs-search-skill"
+  },
+  "geminiChatModel": {
+    "icon": "lobehub:gemini"
+  },
+  "gcloud": {
+    "icon": "lobehub:googlecloud",
+    "color": "#4285F4"
+  },
+  "gcloudAction": {
+    "icon": "lobehub:googlecloud",
+    "skill": "gcloud-skill"
+  },
+  "github": {
+    "icon": "lobehub:Github",
+    "color": "#8250df"
+  },
+  "githubAction": {
+    "icon": "lobehub:Github",
+    "skill": "github-skill"
+  },
+  "gmaps_create": {
+    "icon": "🗺️"
+  },
+  "gmaps_locations": {
+    "icon": "🌍",
+    "skill": "geocoding-skill"
+  },
+  "gmaps_nearby_places": {
+    "icon": "🔍",
+    "skill": "nearby-places-skill"
+  },
+  "googleCalendar": {
+    "skill": "google-calendar-skill"
+  },
+  "googleContacts": {
+    "skill": "google-contacts-skill"
+  },
+  "googleDrive": {
+    "skill": "google-drive-skill"
+  },
+  "googleGmail": {
+    "skill": "google-gmail-skill"
+  },
+  "googleSheets": {
+    "skill": "google-sheets-skill"
+  },
+  "googleTasks": {
+    "skill": "google-tasks-skill"
+  },
+  "msMail": {
+    "skill": "ms-mail-skill"
+  },
+  "msCalendar": {
+    "skill": "ms-calendar-skill"
+  },
+  "groqChatModel": {
+    "icon": "lobehub:groq"
+  },
+  "httpRequest": {
+    "icon": "🌐",
+    "skill": "http-request-skill"
+  },
+  "httpScraper": {
+    "icon": "🔍"
+  },
+  "javascriptExecutor": {
+    "skill": "javascript-skill"
+  },
+  "kimiChatModel": {
+    "icon": "lobehub:kimi"
+  },
+  "lmstudioChatModel": {
+    "icon": "lobehub:lmstudio"
+  },
+  "location": {
+    "icon": "📍",
+    "skill": "location-skill"
+  },
+  "masterSkill": {
+    "icon": "🎯"
+  },
+  "mediaControl": {
+    "icon": "🎵"
+  },
+  "mistralChatModel": {
+    "icon": "lobehub:mistral"
+  },
+  "motionDetection": {
+    "icon": "📳",
+    "skill": "motion-skill"
+  },
+  "networkMonitor": {
+    "icon": "📡"
+  },
+  "ollamaChatModel": {
+    "icon": "lobehub:ollama"
+  },
+  "openaiChatModel": {
+    "icon": "lobehub:openai"
+  },
+  "openrouterChatModel": {
+    "icon": "lobehub:openrouter"
+  },
+  "orchestrator_agent": {
+    "icon": "🎼"
+  },
+  "payments_agent": {
+    "icon": "💳"
+  },
+  "perplexitySearch": {
+    "skill": "perplexity-search-skill"
+  },
+  "processManager": {
+    "icon": "⚙️",
+    "skill": "process-manager-skill"
+  },
+  "productivity_agent": {
+    "icon": "⏰"
+  },
+  "proxyConfig": {
+    "icon": "🔧",
+    "skill": "proxy-config-skill"
+  },
+  "proxyRequest": {
+    "icon": "🛡"
+  },
+  "proxyStatus": {
+    "icon": "📊"
+  },
+  "pythonExecutor": {
+    "skill": "python-skill"
+  },
+  "montyExecutor": {
+    "skill": "monty-skill"
+  },
+  "rlm_agent": {
+    "icon": "🧠"
+  },
+  "screenControlAutomation": {
+    "icon": "💡",
+    "skill": "screen-control-skill"
+  },
+  "serperSearch": {
+    "skill": "serper-search-skill"
+  },
+  "shell": {
+    "icon": "💻",
+    "skill": "shell-skill"
+  },
+  "simpleMemory": {
+    "icon": "🧠"
+  },
+  "social_agent": {
+    "icon": "📱"
+  },
+  "start": {
+    "icon": "▶"
+  },
+  "systemInfo": {
+    "icon": "📱"
+  },
+  "taskManager": {
+    "icon": "📋",
+    "skill": "task-manager"
+  },
+  "taskTrigger": {
+    "icon": "📨"
+  },
+  "task_agent": {
+    "icon": "📋"
+  },
+  "teamMonitor": {
+    "icon": "📊"
+  },
+  "textChunker": {
+    "icon": "✂️"
+  },
+  "textGenerator": {
+    "icon": "📝"
+  },
+  "timer": {
+    "icon": "⏱️",
+    "skill": "timer-skill"
+  },
+  "tool_agent": {
+    "icon": "🔧"
+  },
+  "travel_agent": {
+    "icon": "✈️"
+  },
+  "twitterSearch": {
+    "skill": "twitter-search-skill"
+  },
+  "twitterSend": {
+    "skill": "twitter-send-skill"
+  },
+  "twitterUser": {
+    "skill": "twitter-user-skill"
+  },
+  "vectorStore": {
+    "icon": "🗄️"
+  },
+  "vercel": {
+    "icon": "lobehub:Vercel",
+    "color": "#666666"
+  },
+  "vercelAction": {
+    "icon": "lobehub:Vercel",
+    "skill": "vercel-skill"
+  },
+  "web_agent": {
+    "icon": "🌐"
+  },
+  "webhookResponse": {
+    "icon": "↩️"
+  },
+  "webhookTrigger": {
+    "icon": "🪝"
+  },
+  "whatsappDb": {
+    "skill": "whatsapp-db-skill"
+  },
+  "whatsappSend": {
+    "skill": "whatsapp-send-skill"
+  },
+  "wifiAutomation": {
+    "icon": "📶",
+    "skill": "wifi-skill"
+  },
+  "writeTodos": {
+    "icon": "📝",
+    "skill": "write-todos-skill"
+  },
+  "stripeAction": {
+    "skill": "stripe-skill"
+  },
+  "vertex_managed_agent": {
+    "icon": "lobehub:vertexai",
+    "skill": "vertex-agent-skill"
+  },
+  "vertex_agent_admin": {
+    "icon": "lobehub:googlecloud",
+    "skill": "vertex-agent-admin-skill"
+  },
+  "vertexCloudTool": {
+    "icon": "lobehub:gemini"
+  }
+}

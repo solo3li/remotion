@@ -1,0 +1,484 @@
+{
+  "version": "2026.07",
+  "last_updated": "2026-07-25",
+
+  "llm": {
+    "openai": {
+      "gpt-5.6-sol": {"input": 5.00, "output": 30.00, "cache_read": 0.50},
+      "gpt-5.6-terra": {"input": 2.50, "output": 15.00, "cache_read": 0.25},
+      "gpt-5.6-luna": {"input": 1.00, "output": 6.00, "cache_read": 0.10},
+      "gpt-5.5": {"input": 5.00, "output": 30.00, "cache_read": 0.50},
+      "gpt-5.4": {"input": 2.50, "output": 15.00},
+      "gpt-5.3-chat": {"input": 1.75, "output": 14.00},
+      "gpt-5.2": {"input": 1.75, "output": 14.00},
+      "o4-mini": {"input": 1.10, "output": 4.40, "reasoning": 4.40},
+      "gpt-4.1": {"input": 2.00, "output": 8.00},
+      "_default": {"input": 2.50, "output": 15.00}
+    },
+    "anthropic": {
+      "claude-opus-5": {"input": 5.00, "output": 25.00, "cache_read": 0.50},
+      "claude-opus-5-fast": {"input": 10.00, "output": 50.00, "cache_read": 1.00},
+      "claude-fable-5": {"input": 10.00, "output": 50.00, "cache_read": 1.00},
+      "claude-opus-4-8": {"input": 5.00, "output": 25.00, "cache_read": 0.50},
+      "claude-opus-4-7": {"input": 5.00, "output": 25.00, "cache_read": 0.50},
+      "claude-opus-4-6": {"input": 5.00, "output": 25.00, "cache_read": 0.50},
+      "claude-sonnet-5": {"input": 3.00, "output": 15.00, "cache_read": 0.30},
+      "claude-sonnet-4-6": {"input": 3.00, "output": 15.00, "cache_read": 0.30},
+      "claude-haiku-4-5": {"input": 1.00, "output": 5.00, "cache_read": 0.10},
+      "claude-sonnet-4-0": {"input": 3.00, "output": 15.00, "cache_read": 0.30},
+      "claude-opus-4-0": {"input": 15.00, "output": 75.00, "cache_read": 1.50},
+      "_default": {"input": 3.00, "output": 15.00, "cache_read": 0.30}
+    },
+    "gemini": {
+      "gemini-3.6-flash": {"input": 1.50, "output": 7.50},
+      "gemini-3.5-flash-lite": {"input": 0.30, "output": 2.50},
+      "gemini-3.1-pro-preview": {"input": 2.00, "output": 12.00},
+      "gemini-3-flash-preview": {"input": 0.50, "output": 3.00},
+      "gemini-3-pro-preview": {"input": 2.00, "output": 12.00},
+      "gemini-2.5-pro": {"input": 1.25, "output": 10.00},
+      "gemini-2.5-flash": {"input": 0.30, "output": 2.50},
+      "gemma-4-31b-it": {"input": 0.0, "output": 0.0},
+      "gemma-4-26b-a4b-it": {"input": 0.0, "output": 0.0},
+      "_default": {"input": 0.50, "output": 3.00}
+    },
+    "groq": {
+      "gpt-oss-120b": {"input": 0.15, "output": 0.60},
+      "gpt-oss-20b": {"input": 0.075, "output": 0.30},
+      "llama-4-scout": {"input": 0.11, "output": 0.34},
+      "llama-4-maverick": {"input": 0.15, "output": 0.60},
+      "llama-3.3-70b": {"input": 0.10, "output": 0.10},
+      "llama-3.1-8b": {"input": 0.05, "output": 0.08},
+      "qwen3-32b": {"input": 0.29, "output": 0.59},
+      "_default": {"input": 0.15, "output": 0.60}
+    },
+    "xai": {
+      "grok-4.5": {"input": 2.00, "output": 6.00},
+      "grok-4.20": {"input": 2.00, "output": 6.00},
+      "_default": {"input": 2.00, "output": 6.00}
+    },
+    "cerebras": {
+      "gpt-oss-120b": {"input": 0.35, "output": 0.75},
+      "zai-glm-4.7": {"input": 2.25, "output": 2.75},
+      "gemma-4-31b": {"input": 0.99, "output": 1.49},
+      "_default": {"input": 0.35, "output": 0.75}
+    },
+    "openrouter": {
+      "_default": {"input": 1.00, "output": 5.00}
+    },
+    "deepseek": {
+      "deepseek-v4-pro": {"input": 0.435, "output": 0.87},
+      "deepseek-v4-flash": {"input": 0.14, "output": 0.28},
+      "deepseek-chat": {"input": 0.28, "output": 0.42, "cache_read": 0.028},
+      "deepseek-reasoner": {"input": 0.55, "output": 2.19, "cache_read": 0.14},
+      "_default": {"input": 0.28, "output": 0.42}
+    },
+    "kimi": {
+      "kimi-k3": {"input": 3.00, "output": 15.00, "cache_read": 0.30},
+      "kimi-k2.5": {"input": 0.60, "output": 2.50, "cache_read": 0.15},
+      "kimi-k2-thinking": {"input": 0.60, "output": 2.50, "cache_read": 0.15},
+      "moonshot-v1-8k": {"input": 0.20, "output": 2.00},
+      "moonshot-v1-32k": {"input": 1.00, "output": 3.00},
+      "moonshot-v1-128k": {"input": 2.00, "output": 5.00},
+      "_default": {"input": 0.60, "output": 2.50}
+    },
+    "mistral": {
+      "mistral-large-latest": {"input": 2.00, "output": 6.00},
+      "mistral-small-latest": {"input": 0.20, "output": 0.60},
+      "codestral-latest": {"input": 0.30, "output": 0.90},
+      "open-mistral-nemo": {"input": 0.15, "output": 0.15},
+      "_default": {"input": 0.20, "output": 0.60}
+    },
+    "sarvam": {
+      "_note": "Sarvam publishes INR list prices; converted at 1 INR = 0.0113 USD (~88.5 INR/USD, 2026-07). Source rates per MTok: sarvam-105b 4 in / 16 out / 2.5 cached; sarvam-30b 2.5 / 10 / 1.5. _default mirrors sarvam-105b (the provider default_model) so an unresolved id never under-reports. PricingService._build_llm_registry skips non-dict values, so this key is inert.",
+      "sarvam-105b": {"input": 0.045, "output": 0.181, "cache_read": 0.028},
+      "sarvam-30b": {"input": 0.028, "output": 0.113, "cache_read": 0.017},
+      "_default": {"input": 0.045, "output": 0.181, "cache_read": 0.028}
+    },
+    "ollama": {
+      "_description": "Local inference is free at the API layer — user-borne hardware costs are not tracked here.",
+      "_default": {"input": 0.00, "output": 0.00}
+    },
+    "lmstudio": {
+      "_description": "Local inference — same zero-cost convention as ollama.",
+      "_default": {"input": 0.00, "output": 0.00}
+    }
+  },
+
+  "api": {
+    "google_maps": {
+      "_description": "Google Maps Platform pricing per request (USD, Tier 1: 0-100K/month)",
+      "_source": "https://developers.google.com/maps/billing-and-pricing/pricing",
+      "_updated": "2026-02",
+      "geocode": 0.005,
+      "reverse_geocode": 0.005,
+      "nearby_search": 0.032,
+      "place_details": 0.005,
+      "autocomplete": 0.00283,
+      "text_search": 0.032,
+      "directions": 0.005,
+      "distance_matrix": 0.005,
+      "static_map": 0.002,
+      "_default": 0.005
+    },
+    "gmail": {
+      "_description": "Gmail API (free tier with generous rate limits)",
+      "_source": "https://developers.google.com/gmail/api/reference/quota",
+      "_note": "Free API - costs are $0. Rate limit: 250 quota units/user/second",
+      "message_send": 0.0,
+      "message_read": 0.0,
+      "message_list": 0.0,
+      "message_search": 0.0,
+      "message_modify": 0.0,
+      "message_delete": 0.0,
+      "label_list": 0.0,
+      "label_manage": 0.0,
+      "thread_read": 0.0,
+      "thread_list": 0.0,
+      "draft_create": 0.0,
+      "attachment_read": 0.0,
+      "_default": 0.0
+    },
+    "google_calendar": {
+      "_description": "Google Calendar API (free tier)",
+      "_source": "https://developers.google.com/workspace/calendar/api/guides/quota",
+      "_note": "Free API - costs are $0. Rate limit: 1M requests/min",
+      "event_create": 0.0,
+      "event_read": 0.0,
+      "event_update": 0.0,
+      "event_delete": 0.0,
+      "event_list": 0.0,
+      "calendar_list": 0.0,
+      "freebusy_query": 0.0,
+      "_default": 0.0
+    },
+    "google_drive": {
+      "_description": "Google Drive API (free tier)",
+      "_source": "https://developers.google.com/drive/api/guides/limits",
+      "_note": "Free API - costs are $0. Rate limit: 20K requests/100s",
+      "file_upload": 0.0,
+      "file_download": 0.0,
+      "file_list": 0.0,
+      "file_share": 0.0,
+      "file_copy": 0.0,
+      "file_delete": 0.0,
+      "file_metadata": 0.0,
+      "permission_create": 0.0,
+      "_default": 0.0
+    },
+    "google_sheets": {
+      "_description": "Google Sheets API (free tier)",
+      "_source": "https://developers.google.com/workspace/sheets/api/limits",
+      "_note": "Free API - costs are $0. Rate limit: 300 requests/min",
+      "values_read": 0.0,
+      "values_write": 0.0,
+      "values_append": 0.0,
+      "spreadsheet_create": 0.0,
+      "spreadsheet_get": 0.0,
+      "sheet_add": 0.0,
+      "_default": 0.0
+    },
+    "google_tasks": {
+      "_description": "Google Tasks API (free tier)",
+      "_source": "https://developers.google.com/workspace/tasks/reference/rest",
+      "_note": "Free API - costs are $0. Rate limit: 150K requests/min",
+      "task_create": 0.0,
+      "task_read": 0.0,
+      "task_update": 0.0,
+      "task_delete": 0.0,
+      "task_list": 0.0,
+      "tasklist_create": 0.0,
+      "tasklist_list": 0.0,
+      "_default": 0.0
+    },
+    "google_contacts": {
+      "_description": "Google People API for Contacts (free tier)",
+      "_source": "https://developers.google.com/people/api/rest",
+      "_note": "Free API - costs are $0. Rate limit: 90 requests/min",
+      "contact_create": 0.0,
+      "contact_read": 0.0,
+      "contact_update": 0.0,
+      "contact_delete": 0.0,
+      "contact_list": 0.0,
+      "contact_search": 0.0,
+      "_default": 0.0
+    },
+    "microsoft_graph": {
+      "_description": "Microsoft Graph API (Mail + Calendar) - free, throttled per mailbox",
+      "_source": "https://learn.microsoft.com/en-us/graph/throttling",
+      "_note": "Free API - costs are $0. Analytics bookkeeping only.",
+      "mail_send": 0.0,
+      "mail_read": 0.0,
+      "mail_search": 0.0,
+      "mail_reply": 0.0,
+      "mail_list_attachments": 0.0,
+      "mail_download_attachments": 0.0,
+      "event_create": 0.0,
+      "event_read": 0.0,
+      "event_update": 0.0,
+      "event_delete": 0.0,
+      "event_list": 0.0,
+      "_default": 0.0
+    },
+    "twitter": {
+      "_description": "X/Twitter Pay-Per-Use API pricing (per resource/request)",
+      "_source": "https://developer.x.com/#pricing",
+      "posts_read": 0.005,
+      "user_read": 0.010,
+      "dm_event_read": 0.010,
+      "list_read": 0.005,
+      "space_read": 0.005,
+      "community_read": 0.005,
+      "note_read": 0.005,
+      "followers_read": 0.010,
+      "following_read": 0.010,
+      "media_read": 0.005,
+      "analytics_read": 0.005,
+      "trend_read": 0.010,
+      "counts_recent": 0.005,
+      "counts_all": 0.010,
+      "content_create": 0.010,
+      "dm_create": 0.015,
+      "user_interaction_create": 0.015,
+      "interaction_delete": 0.010,
+      "content_manage": 0.005,
+      "list_create": 0.010,
+      "list_manage": 0.005,
+      "bookmark": 0.005,
+      "media_metadata": 0.005,
+      "privacy_update": 0.010,
+      "mute_delete": 0.005
+    },
+    "brave_search": {
+      "_description": "Brave Search API pricing (per query)",
+      "_source": "https://brave.com/search/api/",
+      "_updated": "2026-02",
+      "web_search": 0.003,
+      "_default": 0.003
+    },
+    "tikhub": {
+      "_description": "TikHub pay-per-request (non-2xx not billed)",
+      "_source": "https://tikhub.io/pricing",
+      "_updated": "2026-09",
+      "request": 0.001,
+      "meta": 0.0,
+      "_default": 0.001
+    },
+    "serper": {
+      "_description": "Serper Google Search API pricing (per query)",
+      "_source": "https://serper.dev/pricing",
+      "_updated": "2026-02",
+      "web_search": 0.001,
+      "_default": 0.001
+    },
+    "perplexity": {
+      "_description": "Perplexity Sonar API pricing (per request)",
+      "_source": "https://docs.perplexity.ai/guides/pricing",
+      "_updated": "2026-02",
+      "sonar_search": 0.005,
+      "sonar_pro_search": 0.005,
+      "_default": 0.005
+    },
+    "sarvam": {
+      "_description": "Sarvam non-chat APIs. Text endpoints bill per CHARACTER and speech-to-text bills per SECOND, so these are per-unit prices and the nodes pass the unit count as resource_count. Converted from Sarvam's INR list prices at 1 INR = 0.0113 USD (~88.5 INR/USD, 2026-07): translate 20 INR/10K chars, language ID 3.5 INR/10K chars, TTS bulbul:v3 30 INR/10K chars and bulbul:v2 15 INR/10K chars, speech-to-text 30 INR/hour. Transliteration has no separately published rate and is priced as translation. Chat-model token pricing lives under `llm.sarvam`.",
+      "_source": "https://docs.sarvam.ai/api/getting-started/pricing",
+      "_updated": "2026-07",
+      "translate": 0.0000226,
+      "transliterate": 0.0000226,
+      "detect_language": 0.00000396,
+      "text_to_speech": 0.0000339,
+      "text_to_speech_v2": 0.00001695,
+      "speech_to_text": 0.00009417,
+      "_default": 0.0000226
+    },
+    "deepl": {
+      "_description": "Translation, billed per CHARACTER. DeepL API Pro is $25 per 1M characters on top of a fixed monthly fee, which this per-character figure represents; the API Free tier gives 500K characters/month at no cost, so an install on Free is over-reported. DeepL returns billed_characters per translation and the node reports THAT rather than counting input, so the character count is the provider's own.",
+      "_source": "https://www.deepl.com/pro-api",
+      "_updated": "2026-07",
+      "translate": 0.000025,
+      "_default": 0.000025
+    },
+    "elevenlabs": {
+      "_description": "Text-to-speech, billed per CHARACTER of input. VERIFIED against the published API rate card: $0.10 per 1,000 characters for Multilingual v2/v3 (eleven_multilingual_v2 is the default model here) and $0.05 per 1,000 for Flash/Turbo. This table has no per-model axis, so the higher multilingual rate is used — an install running mostly Flash should halve it. Plans include a character quota; overage is charged at these same rates, so this is the marginal cost rather than the average.",
+      "_source": "https://elevenlabs.io/pricing/api",
+      "_updated": "2026-07",
+      "text_to_speech": 0.0001,
+      "_default": 0.0001
+    },
+    "deepgram": {
+      "_description": "Speech-to-text, billed per MINUTE of audio. VERIFIED Pay-As-You-Go rate for Nova-3 Monolingual pre-recorded ($0.0077/min); Nova-3 Multilingual is $0.0092/min. The node converts measured seconds to minutes before recording, so resource_count here is minutes, not seconds.",
+      "_source": "https://deepgram.com/pricing",
+      "_updated": "2026-07",
+      "speech_to_text": 0.0077,
+      "_default": 0.0077
+    },
+    "openai": {
+      "_description": "OpenAI's /audio/* routes only. These live here rather than under `llm.openai` — the two blocks are separate namespaces and do not collide. speech_to_text bills per SECOND and is accurate: $0.006/minute (gpt-4o-transcribe and whisper-1) = $0.0001/sec; gpt-4o-mini-transcribe is half that. text_to_speech UNDER-REPORTS and cannot fully be fixed in this schema: gpt-4o-mini-tts charges $0.60 per 1M INPUT characters (the figure below) PLUS $12 per 1M audio OUTPUT tokens, which usually dominates — OpenAI's own all-in estimate is ~$0.015/minute of speech. This table bills per character with no output-token axis, so an operator who wants the total reflected should raise text_to_speech to roughly 0.0000167 (that estimate at ~900 characters/minute of speech).",
+      "_source": "https://openai.com/api/pricing/",
+      "_updated": "2026-07",
+      "text_to_speech": 0.0000006,
+      "speech_to_text": 0.0001,
+      "_default": 0.0001
+    },
+    "groq": {
+      "_description": "Groq transcription only (token pricing lives under `llm.groq`). Billed per SECOND of audio: $0.04/hour for whisper-large-v3-turbo, the default model. Groq bills a 10-second floor per request, which the provider module applies before reporting the count.",
+      "_source": "https://groq.com/pricing/",
+      "_updated": "2026-07",
+      "speech_to_text": 0.0000111,
+      "_default": 0.0000111
+    }
+  },
+
+  "operation_map": {
+    "google_maps": {
+      "geocode": "geocode",
+      "reverse_geocode": "reverse_geocode",
+      "nearby_search": "nearby_search",
+      "nearby_places": "nearby_search",
+      "place_details": "place_details",
+      "autocomplete": "autocomplete",
+      "text_search": "text_search",
+      "directions": "directions",
+      "distance_matrix": "distance_matrix",
+      "static_map": "static_map",
+      "create_map": "static_map"
+    },
+    "twitter": {
+      "tweet": "content_create",
+      "reply": "content_create",
+      "retweet": "user_interaction_create",
+      "like": "user_interaction_create",
+      "unlike": "interaction_delete",
+      "delete": "content_manage",
+      "search": "posts_read",
+      "me": "user_read",
+      "by_username": "user_read",
+      "by_id": "user_read",
+      "followers": "followers_read",
+      "following": "following_read"
+    },
+    "gmail": {
+      "send": "message_send",
+      "read": "message_read",
+      "list": "message_list",
+      "search": "message_search",
+      "modify": "message_modify",
+      "delete": "message_delete",
+      "labels": "label_list",
+      "threads": "thread_list",
+      "draft": "draft_create",
+      "attachment": "attachment_read"
+    },
+    "google_calendar": {
+      "create": "event_create",
+      "read": "event_read",
+      "update": "event_update",
+      "delete": "event_delete",
+      "list": "event_list",
+      "calendars": "calendar_list",
+      "freebusy": "freebusy_query"
+    },
+    "google_drive": {
+      "upload": "file_upload",
+      "download": "file_download",
+      "list": "file_list",
+      "share": "file_share",
+      "copy": "file_copy",
+      "delete": "file_delete",
+      "metadata": "file_metadata",
+      "permission": "permission_create"
+    },
+    "google_sheets": {
+      "read": "values_read",
+      "write": "values_write",
+      "append": "values_append",
+      "create": "spreadsheet_create",
+      "get": "spreadsheet_get",
+      "add_sheet": "sheet_add"
+    },
+    "google_tasks": {
+      "create": "task_create",
+      "read": "task_read",
+      "update": "task_update",
+      "delete": "task_delete",
+      "list": "task_list",
+      "create_list": "tasklist_create",
+      "list_tasklists": "tasklist_list",
+      "complete": "task_update"
+    },
+    "google_contacts": {
+      "create": "contact_create",
+      "read": "contact_read",
+      "update": "contact_update",
+      "delete": "contact_delete",
+      "list": "contact_list",
+      "search": "contact_search"
+    },
+    "microsoft_graph": {
+      "send": "mail_send",
+      "read": "mail_read",
+      "search": "mail_search",
+      "reply": "mail_reply",
+      "list_attachments": "mail_list_attachments",
+      "download_attachments": "mail_download_attachments",
+      "create": "event_create",
+      "update": "event_update",
+      "delete": "event_delete",
+      "list": "event_list"
+    },
+    "brave_search": {
+      "web_search": "web_search"
+    },
+    "tikhub": {
+      "call": "request",
+      "fetch_url": "request",
+      "account": "meta"
+    },
+    "serper": {
+      "web_search": "web_search"
+    },
+    "perplexity": {
+      "sonar_search": "sonar_search"
+    },
+    "sarvam": {
+      "translate": "translate",
+      "transliterate": "transliterate",
+      "detect_language": "detect_language",
+      "text_to_speech": "text_to_speech",
+      "text_to_speech_v2": "text_to_speech_v2",
+      "speech_to_text": "speech_to_text"
+    },
+    "_comment_speech": "Every speech provider needs an entry here as well as in api_pricing: calculate_api_cost() returns a zero cost SILENTLY when an action has no operation_map entry, so a missing line reads as 'free' rather than as an error.",
+    "deepl": {
+      "translate": "translate"
+    },
+    "elevenlabs": {
+      "text_to_speech": "text_to_speech"
+    },
+    "deepgram": {
+      "speech_to_text": "speech_to_text"
+    },
+    "openai": {
+      "text_to_speech": "text_to_speech",
+      "speech_to_text": "speech_to_text"
+    },
+    "groq": {
+      "speech_to_text": "speech_to_text"
+    }
+  },
+
+  "url_patterns": {
+    "twitter": {
+      "base": "https?://api\\.(twitter|x)\\.com",
+      "actions": {
+        "/2/tweets$": {"action": "content_create", "method": "POST"},
+        "/2/tweets/search": {"action": "posts_read", "method": "GET", "count_path": "data.length"},
+        "/2/users/.*/following": {"action": "following_read", "method": "GET", "count_path": "data.length"},
+        "/2/users/.*/followers": {"action": "followers_read", "method": "GET", "count_path": "data.length"},
+        "/2/users/.*/likes$": {"action": "user_interaction_create", "method": "POST"},
+        "/2/users/by": {"action": "user_read", "method": "GET", "count_path": "data.length"},
+        "/2/users/me": {"action": "user_read", "method": "GET"},
+        "/2/users/\\d+$": {"action": "user_read", "method": "GET"}
+      }
+    }
+  }
+}

@@ -1,0 +1,261 @@
+#!/usr/bin/env node
+/*
+ * ai-employees
+ *
+ *   npx ai-employees hire <employee> [--to <folder>]
+ *   npx ai-employees list
+ *
+ * Copies one employee folder into place, refuses a folder under cloud sync,
+ * runs every kit script's self test, and prints its install prompt with the
+ * path filled in. It registers no schedule, sends nothing, and reports
+ * nothing anywhere. The only network call is the download of the repo
+ * tarball when the employee folder is not already beside this script.
+ *
+ * Requires Node 18 or newer. No dependencies.
+ */
+
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
+import { upgrade as runUpgrade, contribute as runContribute, writeReceipt } from "./upgrade.mjs";
+import { reconcile as runReconcile } from "./reconcile.mjs";
+
+const SELF = fileURLToPath(import.meta.url);
+const HERE = path.dirname(SELF);
+const REPO = "markfulton/ai-employees";
+const VERSION = readVersion();
+
+const EMPLOYEES = {
+  "gtm-engineer": { name: "GTM Engineer", role: "Go to market and launch", aliases: ["gtm", "go-to-market", "launch", "growth"] },
+  "seo-employee": { name: "SEO/AEO Employee", role: "Search and answer visibility", aliases: ["seo", "aeo", "geo", "search", "content"] },
+  "web-dev-employee": { name: "Web Dev Employee", role: "Engineering and maintenance", aliases: ["web-dev", "webdev", "web", "developer", "dev"] },
+  "social-media-employee": { name: "Social Media Employee", role: "Audience and distribution", aliases: ["social", "social-media"] },
+  "ad-manager-employee": { name: "Ad Manager Employee", role: "Paid acquisition", aliases: ["ads", "ad-manager", "paid"] },
+  "sales-employee": { name: "Sales Employee", role: "Pipeline and outreach", aliases: ["sales", "sdr"] },
+  "customer-satisfaction-employee": { name: "Customer Satisfaction Employee", role: "Support and retention", aliases: ["csat", "support", "customer-satisfaction", "customer"] },
+  "chief-of-staff": { name: "Chief of Staff", role: "Oversight and strategy", aliases: ["cos", "chief", "chief-of-staff"] },
+};
+
+const SYNC_MARKERS = ["onedrive", "dropbox", "icloud", "google drive", "googledrive", "mobile documents"];
+
+function readVersion() {
+  try { return JSON.parse(fs.readFileSync(path.join(HERE, "..", "package.json"), "utf8")).version || "0.0.0"; }
+  catch { return "0.0.0"; }
+}
+
+function out(s) { process.stdout.write(s + "\n"); }
+function fail(s, code = 1) { process.stderr.write("ai-employees: " + s + "\n"); process.exit(code); }
+
+function usage() {
+  out([
+    "ai-employees " + VERSION,
+    "",
+    "  npx ai-employees hire <employee> [--to <folder>]   copy one employee into place and print its install prompt",
+    "  npx ai-employees list                              the eight, one line each",
+    "  npx ai-employees upgrade <employee> [--to <folder>] [--apply]   report what a new version would change, then apply it",
+    "  npx ai-employees reconcile <employee> --to <folder> [--base <original-kit>] [--apply]   prepare or apply nonconflicting three-way merges",
+    "  npx ai-employees contribute <employee> [--to <folder>] [--since YYYY-MM-DD]  turn your employee's own field repairs into an issue",
+    "",
+    "The folder must be outside OneDrive, Dropbox, Google Drive and iCloud. Without --to it is ./employees/<slug>.",
+    "Nothing is scheduled and nothing is sent. Prerequisites: https://github.com/" + REPO + "/blob/main/docs/PREREQUISITES.md",
+  ].join("\n"));
+}
+
+function list() {
+  for (const [slug, e] of Object.entries(EMPLOYEES)) out("  " + slug.padEnd(32) + e.name.padEnd(32) + e.role);
+}
+
+function resolveSlug(word) {
+  if (!word) return null;
+  const w = word.toLowerCase().replace(/_/g, "-").replace(/\s+/g, "-");
+  if (EMPLOYEES[w]) return w;
+  for (const [slug, e] of Object.entries(EMPLOYEES)) {
+    if (e.aliases.includes(w) || slug.startsWith(w) || e.name.toLowerCase().replace(/\s+/g, "-") === w) return slug;
+  }
+  return null;
+}
+
+function underCloudSync(p) {
+  const norm = path.resolve(p).toLowerCase().replace(/\\/g, "/");
+  return SYNC_MARKERS.some((m) => norm.includes(m));
+}
+
+function isEmptyDir(p) {
+  return fs.existsSync(p) && fs.statSync(p).isDirectory() && fs.readdirSync(p).length === 0;
+}
+
+function copyDir(src, dst) {
+  fs.mkdirSync(dst, { recursive: true });
+  for (const e of fs.readdirSync(src, { withFileTypes: true })) {
+    const s = path.join(src, e.name), d = path.join(dst, e.name);
+    if (e.isDirectory()) copyDir(s, d);
+    else fs.copyFileSync(s, d);
+  }
+}
+
+async function fetchTarball(slug, dst) {
+  const refs = ["refs/tags/v" + VERSION, "refs/heads/main"];
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ai-employees-"));
+  try {
+    for (const ref of refs) {
+      const url = "https://codeload.github.com/" + REPO + "/tar.gz/" + ref;
+      let res;
+      try { res = await fetch(url); } catch (err) { out("  download failed for " + ref + ": " + err.message); continue; }
+      if (!res.ok) { out("  " + ref + " is not available (" + res.status + ")"); continue; }
+      const file = path.join(tmp, "repo.tgz");
+      fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
+      const listing = spawnSync("tar", ["-tzf", file], { encoding: "utf8" });
+      if (listing.status !== 0) fail("tar is needed to extract the download and it is not available: " + (listing.stderr || "").trim());
+      const top = (listing.stdout.split("\n")[0] || "").split("/")[0];
+      const member = top + "/employees/" + slug;
+      if (!listing.stdout.split("\n").some((l) => l.startsWith(member + "/"))) fail("the download has no employees/" + slug + " folder");
+      const extractRoot = path.join(tmp, "x");
+      fs.mkdirSync(extractRoot);
+      const x = spawnSync("tar", ["-xzf", file, "-C", extractRoot, member], { encoding: "utf8" });
+      if (x.status !== 0) fail("extract failed: " + (x.stderr || "").trim());
+      copyDir(path.join(extractRoot, member), dst);
+      out("  downloaded " + ref + " and copied employees/" + slug);
+      return;
+    }
+    fail("could not download the repo. Clone https://github.com/" + REPO + " and copy employees/" + slug + " by hand.");
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+function selftests(dst) {
+  let allOk = true;
+  for (const script of fs.readdirSync(path.join(dst, "scripts")).filter(f => f.endsWith(".mjs")).sort()) {
+    const p = path.join(dst, "scripts", script);
+    if (!fs.existsSync(p)) { out("  missing " + script); allOk = false; continue; }
+    const r = spawnSync(process.execPath, [p, "--selftest"], { encoding: "utf8" });
+    const last = (r.stdout || "").trim().split("\n").pop() || (r.stderr || "").trim();
+    out("  " + (r.status === 0 ? "ok    " : "FAIL  ") + last);
+    if (r.status !== 0) allOk = false;
+  }
+  return allOk;
+}
+
+function loginStatus() {
+  const r = spawnSync("claude", ["auth", "status"], { encoding: "utf8", shell: process.platform === "win32" });
+  if (r.error || r.status === null) return "unknown (claude is not on PATH here; the Desktop app has its own login, and another harness has its own login check)";
+  const text = (r.stdout || "") + (r.stderr || "");
+  if (/loggedIn"?\s*:\s*true/i.test(text)) return "logged in";
+  if (/loggedIn"?\s*:\s*false/i.test(text) || /not logged in/i.test(text)) return "NOT logged in";
+  return "unknown";
+}
+
+async function hire(args) {
+  const slug = resolveSlug(args._[0]);
+  if (!slug) { out("Which employee? One of:"); list(); process.exit(2); }
+  const e = EMPLOYEES[slug];
+  const dst = path.resolve(args.to || path.join(process.cwd(), "employees", slug));
+
+  if (underCloudSync(dst)) {
+    fail(dst + " sits under a cloud sync folder. The routines write state and a run log mid run, and a sync client corrupts exactly the file that tells tomorrow's run what already happened. Pick a local folder such as " + (process.platform === "win32" ? "D:\\AgentOps\\" + slug : "~/ai-employees/" + slug) + " and pass it with --to.", 3);
+  }
+  if (fs.existsSync(dst) && !isEmptyDir(dst)) {
+    fail(dst + " already exists and is not empty. Never copy over an installed employee; its strategy, state and ledgers are yours. To update one, follow CHANGELOG.md, section Updating without losing your work.", 4);
+  }
+
+  out("Hiring the " + e.name + " into " + dst);
+  const local = path.join(HERE, "..", "employees", slug);
+  if (fs.existsSync(path.join(local, "CONTRACT.md"))) {
+    copyDir(local, dst);
+    out("  copied employees/" + slug + " from the package");
+  } else {
+    await fetchTarball(slug, dst);
+  }
+
+  const version = fs.existsSync(path.join(dst, "VERSION")) ? fs.readFileSync(path.join(dst, "VERSION"), "utf8").trim() : "unknown";
+  out("  kit version " + version);
+  writeReceipt(dst, slug, version);
+  out("  wrote .installed.json so a later upgrade can tell your edits from ours");
+  out("Self tests:");
+  const ok = selftests(dst);
+  out("Login: " + loginStatus());
+
+  const promptPath = path.join(dst, "INSTALL-PROMPT.md");
+  let prompt = fs.readFileSync(promptPath, "utf8");
+  const rootToken = (prompt.match(/«[A-Z_]+_ROOT»/) || [])[0];
+  if (rootToken) prompt = prompt.split(rootToken).join(dst);
+
+  out("");
+  out("=".repeat(78));
+  out("Next: open a session in " + dst + " in the agent you use (Claude Code or any of the other twelve) and say");
+  out("\"install the " + e.name + " from this folder\". It reads INSTALL-PROMPT.md itself and asks for your home page");
+  out("only if it cannot find it. Or paste it yourself: the prompt is printed below with the path already filled in;");
+  out("copy everything between === BEGIN PROMPT === and === END PROMPT ===. The employee's first run takes");
+  out("about an hour and may ask for a second session." + (ok ? "" : " Fix the failed self test first; docs/PREREQUISITES.md says how."));
+  out("=".repeat(78));
+  out("");
+  out(prompt.trim());
+  out("");
+  out("Guided version, updates and premium employees: club.reinventing.ai (https://club.reinventing.ai/?utm_source=github&utm_medium=kit&utm_campaign=" + slug + ")");
+}
+
+
+async function resolveFreshKit(slug) {
+  const local = path.join(HERE, "..", "employees", slug);
+  if (fs.existsSync(path.join(local, "CONTRACT.md"))) return { dir: local, cleanup: null };
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ai-employees-up-"));
+  const dst = path.join(tmp, slug);
+  await fetchTarball(slug, dst);
+  return { dir: dst, cleanup: () => fs.rmSync(tmp, { recursive: true, force: true }) };
+}
+
+async function upgradeCmd(args) {
+  const slug = resolveSlug(args._[0]);
+  if (!slug) { out("Which employee? One of:"); list(); process.exit(2); }
+  const installed = path.resolve(args.to || path.join(process.cwd(), "employees", slug));
+  const fresh = await resolveFreshKit(slug);
+  try {
+    runUpgrade({ installed, fresh: fresh.dir, slug, apply: args.apply, out, fail });
+  } finally {
+    if (fresh.cleanup) fresh.cleanup();
+  }
+}
+
+function contributeCmd(args) {
+  const slug = resolveSlug(args._[0]);
+  if (!slug) { out("Which employee? One of:"); list(); process.exit(2); }
+  const installed = path.resolve(args.to || path.join(process.cwd(), "employees", slug));
+  runContribute({ installed, slug, since: args.since, out, fail });
+}
+
+function parse(argv) {
+  const args = { _: [], to: null, base: null, help: false, apply: false, since: null };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--to") { args.to = argv[++i]; if (!args.to) fail("--to needs a folder", 2); continue; }
+    if (a.startsWith("--to=")) { args.to = a.slice(5); continue; }
+    if (a === "--apply") { args.apply = true; continue; }
+    if (a === "--base") { args.base = argv[++i]; if (!args.base) fail("--base needs a folder", 2); continue; }
+    if (a === "--since") { args.since = argv[++i]; if (!args.since) fail("--since needs a date, YYYY-MM-DD", 2); continue; }
+    if (a.startsWith("--since=")) { args.since = a.slice(8); continue; }
+    if (a === "--help" || a === "-h") { args.help = true; continue; }
+    if (a === "--version" || a === "-v") { out(VERSION); process.exit(0); }
+    if (a.startsWith("--")) fail("unknown option " + a, 2);
+    args._.push(a);
+  }
+  return args;
+}
+
+const args = parse(process.argv.slice(2));
+const cmd = args._.shift();
+if (args.help || !cmd) { usage(); process.exit(cmd ? 0 : 2); }
+if (cmd === "list") { list(); process.exit(0); }
+if (cmd === "hire") { await hire(args); process.exit(0); }
+if (cmd === "upgrade") { await upgradeCmd(args); process.exit(0); }
+if (cmd === "reconcile") {
+  const slug = resolveSlug(args._[0]);
+  if (!slug || !args.to) fail("reconcile needs an employee and --to folder", 2);
+  const installed = path.resolve(args.to);
+  const manifest = JSON.parse(fs.readFileSync(path.join(installed, "employee.json"), "utf8"));
+  if (manifest.slug !== slug) fail("employee does not match installed manifest", 2);
+  runReconcile({ installed, base: args.base, apply: args.apply, out }); process.exit(0);
+}
+if (cmd === "contribute") { contributeCmd(args); process.exit(0); }
+fail("unknown command " + cmd + ". Try one of: list, hire, upgrade, reconcile, contribute", 2);

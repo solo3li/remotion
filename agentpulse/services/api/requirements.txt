@@ -1,0 +1,15 @@
+# 运行时（ADR 0019）
+cryptography>=44
+deepseek-harness-sdk==0.1.0rc7
+deepseek-harness-runtime-bin==0.1.0rc7
+
+# 测试
+pytest>=8
+
+# HTTP 层
+fastapi>=0.115
+uvicorn>=0.34
+
+# 测试
+httpx>=0.28
+pytest-asyncio>=0.24

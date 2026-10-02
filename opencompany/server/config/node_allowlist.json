@@ -1,0 +1,96 @@
+{
+  "_comment": "Node visibility config. `enabled_nodes`: positive list (empty = allow all). With the Normal-mode screen on (client featureFlags.normalMode) it governs which node types Hire may build into an employee (services.node_allowlist.is_hire_allowed) and the editor palette lists every node; with the flag off it is the palette's Normal-mode filter. `disabled_groups` / `disabled_nodes`: ABSOLUTE blocklist enforced everywhere, in the palette and for Hire — wins over enabled_nodes and over the show_all default. Node type identifiers must match the 'type' class attribute on the plugin in server/nodes/<category>/<file>.py verbatim.",
+  "enabled_nodes": [
+    "start",
+    "chatTrigger",
+    "chatReply",
+    "taskTrigger",
+    "console",
+
+    "aiAgent",
+    "chatAgent",
+    "android_agent",
+    "vertex_managed_agent",
+    "vertex_agent_admin",
+    "vertexCloudTool",
+
+    "simpleMemory",
+    "dataSource",
+    "visionAnalyze",
+    "masterSkill",
+
+    "openaiChatModel",
+    "anthropicChatModel",
+    "geminiChatModel",
+    "sarvamChatModel",
+
+    "calculatorTool",
+    "currentTimeTool",
+    "writeTodos",
+    "canvas",
+    "browser",
+    "agentBuilder",
+
+    "context",
+    "approvalGate",
+    "duckduckgoSearch",
+
+    "whatsappReceive",
+    "whatsappSend",
+
+    "googleGmail",
+    "googleGmailReceive",
+    "googleCalendar",
+    "googleDrive",
+    "googleSheets",
+
+    "emailReceive",
+    "emailSend",
+
+    "msMail",
+    "msMailReceive",
+    "msCalendar",
+
+    "stripeAction",
+
+    "httpRequest",
+    "timer",
+    "cronScheduler",
+
+    "tikhubAction",
+
+    "telegramSend",
+    "telegramReceive",
+
+    "discordSend",
+    "discordAction",
+    "discordReceive",
+    "discordInteraction",
+
+    "whatsappBusinessSend",
+    "whatsappBusinessReceive",
+    "whatsappBusinessStatus",
+    "whatsappBusinessMedia",
+
+    "airplaneModeControl",
+    "appLauncher",
+    "appList",
+    "audioAutomation",
+    "batteryMonitor",
+    "bluetoothAutomation",
+    "cameraControl",
+    "deviceStateAutomation",
+    "environmentalSensors",
+    "location",
+    "mediaControl",
+    "motionDetection",
+    "networkMonitor",
+    "screenControlAutomation",
+    "systemInfo",
+    "wifiAutomation"
+  ],
+  "disabled_groups": [],
+  "disabled_nodes": [],
+  "disabled_credential_categories": [],
+  "disabled_skill_folders": []
+}

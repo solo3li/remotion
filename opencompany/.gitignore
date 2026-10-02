@@ -1,0 +1,208 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+test-temp*/
+
+# External design handoff bundle (reference-only; merged copy lives in docs-internal/design-system/)
+design_handoff_opencompany_home/
+
+# Product film (Remotion project, rendered video, generated audio). Local only.
+marketing/
+
+# npm-generated lock file. This project uses bun (canonical lock:
+# ``bun.lock``, tracked). Source checkouts are gated to bun
+# by ``scripts/preinstall.js``; ``package-lock.json`` only appears
+# if npm runs outside the workspace. Keep it out of commits.
+package-lock.json
+
+# =============================================================================
+# SECURITY - Credentials and Secrets (NEVER COMMIT)
+# =============================================================================
+# Env files are committed — they hold only ports, paths, feature flags,
+# and other non-sensitive config. Credentials live in the encrypted
+# ``credentials.db`` (Fernet + PBKDF2 via ``server/core/encryption.py``),
+# never in env files.
+
+# API Keys and Credentials
+**/credentials.json
+**/secrets.json
+**/apikeys.json
+**/*.pem
+**/*.key
+**/*.crt
+**/*.p12
+**/*.pfx
+
+# WhatsApp RPC is now an npm dependency (@anthropic/whatsapp-rpc)
+# Session data is stored in node_modules/@anthropic/whatsapp-rpc/data/
+
+# =============================================================================
+# Database files (may contain sensitive user data)
+# =============================================================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+server/api/db/
+server/*.db
+server/data/
+
+# =============================================================================
+# Editor and IDE
+# =============================================================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =============================================================================
+# OS and System files
+# =============================================================================
+.DS_Store
+Thumbs.db
+*.pyc
+__pycache__/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Windows reserved files
+nul
+NUL
+
+# Test artifacts — when a test passes a MagicMock to Path(...).mkdir
+# the mock's repr() materialises as a real folder tree. Belt-and-braces
+# guard so future stray runs don't pollute the worktree.
+MagicMock/
+
+# =============================================================================
+# Build artifacts
+# =============================================================================
+build/
+*.tgz
+*.exe
+*.dll
+*.so
+*.dylib
+
+# =============================================================================
+# Python
+# =============================================================================
+.venv/
+venv/
+.cli-venv/
+*.egg-info/
+.eggs/
+
+# uv (Python package manager). server/uv.lock IS tracked: the desktop
+# build runs ``uv sync --frozen`` against it so every install of a given
+# app version gets the same dependency tree, and CI runs ``uv lock --check``.
+uv.lock
+!server/uv.lock
+# .python-version at the repo root IS tracked -- it's the project-wide
+# toolchain pin (read by uv, pyenv, asdf, AND ``setup-python`` via
+# python-version-file: in our GitHub Actions workflows). Per-developer
+# overrides live in server/.python-version (still ignored).
+server/.python-version
+
+# =============================================================================
+# bun
+# =============================================================================
+# Legacy binary lockfile (the tracked text ``bun.lock`` is canonical).
+bun.lockb
+.bun-debug*
+
+# =============================================================================
+# Temporary and cache files
+# =============================================================================
+*.tmp
+*.temp
+.cache/
+*.cache
+
+# Archived logo explorations; selected logos remain in output/imagegen/.
+/tmp/logo-explorations/
+
+# =============================================================================
+# Claude Code configuration + per-workflow runtime data
+# =============================================================================
+# Claude Code's local config / session state / scheduled tasks.
+.claude/
+# OpenCompany runtime root (`server/core/paths.py::opencompany_root`). Holds
+# claude/, workspaces/, whatsapp/, credentials.db, workflow.db — every
+# machine-local artefact. Override path via `DATA_DIR` env var in
+# `.env` (default is `~/.opencompany`, the user home dir; not normally
+# present at the repo root). The `workflows/` subtree is the lone
+# exception — it ships example seeds (auto-imported on first
+# launch by ``services.example_loader``), so it stays tracked.
+/.opencompany/*
+!/.opencompany/workflows/
+# Mobile runtime created by server-relative DATA_DIR resolution in existing
+# installations: SDK, engine environment, AVD disks, snapshots, and downloads.
+/server/.opencompany/
+# Pre-rebrand repo-local state remains readable for upgrades but is never
+# tracked. Do not remove this rule: local databases and deploy state may live
+# here in existing checkouts.
+/.machina/*
+# Legacy data dir from the pre-cutover layout. Operators upgrading
+# from older releases either set `DATA_DIR=data` to keep the old
+# layout or migrate the contents to `~/.opencompany/` manually.
+/data/
+# Patch archive left behind by `git format-patch` during one-off
+# merges (see ../.merge-archive cleanup commits). Never committed.
+.merge-archive/
+
+# Test side-effect dir from conftest's core.paths stub
+# (server/core/paths.py). Keep both pre- and post-rebrand fixture spellings
+# at this dir so plugin module imports don't touch the real user
+# home during tests. Re-created on each test run.
+server/tests/_test_machina_root/
+server/tests/_test_opencompany_root/
+
+# =============================================================================
+# Experiments (work in progress)
+# =============================================================================
+server/experiments/
+
+# Terraform provider cache (cli/terraform/*)
+**/.terraform/
+# Terraform state and variable files carry secrets (owner password, JWT keys)
+cli/terraform/**/*.tfstate
+cli/terraform/**/*.tfstate.*
+cli/terraform/**/*.tfvars
+cli/terraform/**/*.tfvars.json
+
+# =============================================================================
+# Desktop shell (desktop/) — build outputs, staged bundle inputs, downloaded
+# runtimes. Only sources, config, runtimes.json and build/icon.svg are tracked.
+# =============================================================================
+desktop/node_modules/
+desktop/out/
+desktop/release/
+desktop/stage/
+desktop/vendor/
+# The generic `build/` rule above would hide the whole electron-builder
+# buildResources dir; only the rendered PNG is derived (from icon.svg).
+!desktop/build/
+desktop/build/icon.png
+desktop/test-results/
+desktop/playwright-report/

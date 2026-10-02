@@ -1,0 +1,104 @@
+"""Plugins for the 'telegram' palette group.
+
+This package owns the entire telegram surface area; nothing telegram-
+specific lives outside this folder. Cross-cutting concerns plug into
+generic registries that the consumers (router, broadcaster, event
+waiter, trigger handler) read at dispatch time:
+
+    _credentials.py     TelegramCredential (api-key)
+    _service.py         TelegramService (singleton bot lifecycle)
+    _handlers.py        WebSocket handlers + WS_HANDLERS dispatch dict
+    _filters.py         build_telegram_filter (event-waiter filter)
+    _refresh.py         refresh_telegram_status (broadcaster hook)
+                        precheck_telegram_trigger (trigger pre-check)
+    telegram_send.py    workflow ActionNode + AI tool
+    telegram_receive.py workflow TriggerNode
+
+On import, this package self-registers six callbacks:
+
+    1. WS handlers      -> services.ws_handler_registry
+    2. Event filter     -> services.event_waiter.FILTER_BUILDERS
+    3. Trigger precheck -> services.event_waiter._TRIGGER_PRECHECKS
+    4. Status refresh   -> services.status_broadcaster._SERVICE_REFRESH_CALLBACKS
+    5. Output schemas   -> services.node_output_schemas (telegramReceive + telegramSend)
+    6. Canary trigger   -> services.deployment.canary_registry (telegramReceive)
+
+Adding a new plugin folder follows the same shape -- consumers do not
+need to learn its name.
+
+External callers should depend on the public re-exports below; the
+underscore-prefixed modules are implementation detail.
+"""
+
+from __future__ import annotations
+
+from services.deployment.canary_registry import register_canary_trigger_type
+from services.event_waiter import register_filter_builder, register_trigger_precheck
+from services.node_output_schemas import register_output_schema
+from services.plugin.shutdown_hooks import register_shutdown_hook
+from services.status_broadcaster import register_service_refresh
+from services.ws_handler_registry import register_ws_handlers
+
+from ._credentials import TelegramCredential
+from ._events import (  # noqa: F401 — re-exported for callers
+    broadcast_telegram_status,
+    dispatch_telegram_message_received,
+)
+from ._filters import build_telegram_filter
+from ._handlers import WS_HANDLERS
+from ._refresh import precheck_telegram_trigger, refresh_telegram_status
+from ._service import TelegramService, get_telegram_service
+
+# Telegram plugin classes -- importing them runs __init_subclass__ which
+# slots them into the plugin/node registries (handled by services.plugin).
+from .telegram_receive import TelegramReceiveNode, TelegramReceiveOutput
+from .telegram_send import TelegramSendNode, TelegramSendOutput
+
+# --- self-registration on import -------------------------------------------
+register_ws_handlers(WS_HANDLERS)
+register_filter_builder("telegramReceive", build_telegram_filter)
+register_trigger_precheck("telegramReceive", precheck_telegram_trigger)
+register_service_refresh(refresh_telegram_status)
+register_output_schema("telegramReceive", TelegramReceiveOutput)
+register_output_schema("telegramSend", TelegramSendOutput)
+
+# Wave 12 C1 rollout #3: opt telegramReceive into the
+# TriggerListenerWorkflow consumer path. Producer side:
+# dispatch_telegram_message_received calls services.events.dispatch.emit
+# unconditionally; emit() is gated by Settings.event_framework_enabled
+# so the legacy path stays default. See
+# services/deployment/canary_registry.py.
+register_canary_trigger_type(TelegramReceiveNode.type, "com.opencompany.telegram.message.received")
+
+
+async def _shutdown_telegram() -> None:
+    """Release the getUpdates slot before the process exits.
+
+    Telegram allows exactly one getUpdates consumer per bot token and keeps
+    an in-flight long poll reserved until it times out — up to the 30s read
+    timeout ``connect()`` configures. Without this hook the polling task was
+    never cancelled and ``Application.stop()`` never ran: the process simply
+    died holding the slot, so the next start collided with its own predecessor
+    and logged a Conflict for the remainder of the drain window. Restarts are
+    frequent in dev (uvicorn --reload), which made it look like a permanent
+    second instance.
+
+    Only helps on graceful teardown; a hard kill still leaves Telegram to time
+    the poll out. ``disconnect()`` is a no-op when nothing is connected.
+    """
+    service = get_telegram_service()
+    if service.connected:
+        await service.disconnect()
+
+
+register_shutdown_hook("telegram", _shutdown_telegram)
+
+__all__ = [
+    "TelegramCredential",
+    "TelegramService",
+    "WS_HANDLERS",
+    "build_telegram_filter",
+    "get_telegram_service",
+    "precheck_telegram_trigger",
+    "refresh_telegram_status",
+]

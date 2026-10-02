@@ -1,0 +1,15 @@
+.git
+**/node_modules
+!apps/web/.next/standalone/node_modules
+!apps/web/.next/standalone/node_modules/**
+!apps/web/.next/**
+packages/*/dist
+examples/*/dist
+
+image.png
+*.gif
+*.mp4
+*.mov
+.env
+.env.*
+!.env.example

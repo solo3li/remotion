@@ -1,0 +1,425 @@
+{
+  "version": "2026.09.11",
+  "last_updated": "2026-09-11",
+  "_description": "LLM provider defaults. popular_models drives the ordered global selector and offline fallback independently of token constraints. POLICY (2026-07-23): popular_models lists only models with >= 1M-token context windows — providers whose models are all below 1M carry an empty list and contribute nothing to the global selector (their models stay reachable via the live per-provider fetch_models dropdown). base_url directly configures the nine OpenAI-compatible native providers; dedicated OpenAI, Anthropic, and Gemini providers use SDK defaults, while OpenRouter has its own gateway default. Runtime proxy credentials can override supported endpoints. Model specs are enriched by model_registry.json (OpenRouter cache).",
+
+  "agent": {
+    "_description": "Agent execution defaults. recursion_limit and compaction.ratio are sourced from the environment (AGENT_RECURSION_LIMIT, COMPACTION_RATIO via core.config.Settings) — these JSON values are last-resort fallbacks when the env vars aren't loaded (e.g. one-off CLI scripts that bypass Settings). default_temperature stays JSON-resident since it has no env override yet.",
+    "recursion_limit": 200,
+    "default_temperature": 0.7,
+    "compaction": {
+      "ratio": 0.8
+    }
+  },
+
+  "providers": {
+    "openai": {
+      "display_name": "OpenAI",
+      "default_model": "gpt-5.6-sol",
+      "popular_models": ["gpt-5.6-sol", "gpt-6-astra", "gpt-6-astra-pro", "gpt-5.6-sol-pro", "gpt-5.6-terra", "gpt-5.6-terra-pro", "gpt-5.6-luna", "gpt-5.6-luna-pro", "gpt-5.5", "gpt-5.4", "gpt-4.1"],
+      "detection_patterns": ["gpt", "openai", "o1", "o3", "o4"],
+      "base_url": "https://api.openai.com/v1",
+      "models_endpoint": "https://api.openai.com/v1/models",
+      "api_key_param": "openai_api_key",
+      "max_tokens_param": "max_tokens",
+      "vision": {
+        "enabled": false,
+        "_note": "Native image input is emitted only when enabled is true; unknown/absent providers get a text placeholder instead (a rejected image block would poison journaled history). Read by services/llm/media.py provider_supports_vision. False here until the OpenAI request encoder renders image blocks (Responses input_image in function_call_output; Chat Completions hoist-to-user-turn) — flipping it early would hydrate bytes the encoder silently drops. Anthropic ships the first encoder; text-only providers keep the visionAnalyze delegate tool."
+      },
+      "_models_note": "GPT-6 Astra (+ -pro) appear in the 2026-09-11 registry refresh ($10/$50 per MTok, 1.05M context, 128K max output, effort thinking) and are curated as the top tier; the default stays gpt-5.6-sol ($2/$10), the same price-over-flagship call as anthropic keeping claude-opus-5 over claude-fable-5-1. The rolling -latest aliases (gpt-astra-latest, gpt-sol-latest, gpt-terra-latest, gpt-luna-latest) are deliberately not curated: real model names only, like gemini. GPT-5.6 family (sol/terra/luna) GA 2026-07-09. gpt-5.5 / gpt-5.4 remain GA as legacy tiers. Dropped: gpt-5.2 (new requests blocked 2026-06-30), o3 (API shutdown 2026-12-11), o4-mini (API shutdown 2026-10-23) — they fall back to _default constraints if still selected before shutdown.",
+      "max_output_tokens": {
+        "gpt-5.6-sol": 128000,
+        "gpt-6-astra": 128000,
+        "gpt-6-astra-pro": 128000,
+        "gpt-5.6-sol-pro": 128000,
+        "gpt-5.6-terra": 128000,
+        "gpt-5.6-terra-pro": 128000,
+        "gpt-5.6-luna": 128000,
+        "gpt-5.6-luna-pro": 128000,
+        "gpt-5.5": 128000,
+        "gpt-5.4": 128000,
+        "gpt-4.1": 32768,
+        "_default": 16384
+      },
+      "context_length": {
+        "gpt-5.6-sol": 1050000,
+        "gpt-6-astra": 1050000,
+        "gpt-6-astra-pro": 1050000,
+        "gpt-5.6-sol-pro": 1050000,
+        "gpt-5.6-terra": 1050000,
+        "gpt-5.6-terra-pro": 1050000,
+        "gpt-5.6-luna": 1050000,
+        "gpt-5.6-luna-pro": 1050000,
+        "gpt-5.5": 1050000,
+        "gpt-5.4": 1050000,
+        "gpt-4.1": 1047576,
+        "_default": 128000
+      },
+      "reasoning_models": ["o4-mini", "o3"],
+      "thinking_models": ["gpt-5", "gpt-6"],
+      "thinking_type": "effort",
+      "temperature_range": [0.0, 2.0]
+    },
+    "anthropic": {
+      "display_name": "Anthropic",
+      "default_model": "claude-opus-5",
+      "popular_models": ["claude-opus-5", "claude-fable-5-1", "claude-fable-5", "claude-sonnet-5", "claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-4-6"],
+      "_models_note": "claude-opus-5 (released 2026-07-24) is the Opus flagship and default: near-Fable intelligence at Opus pricing ($5/$25), 1M context, 128K max output. claude-fable-5-1 (registry 2026-09-03: $10/$50, 1M context, 128K max output) is the most capable generally available model and supersedes claude-fable-5, which stays curated as the cheaper prior tier. The adaptive-thinking / sampling-removed lists below match by prefix, so the existing claude-fable-5 entries cover 5.1. The claude-opus-5-fast variant (2x pricing) is deliberately not curated here; select it via the live dropdown if needed.",
+      "detection_patterns": ["claude", "anthropic"],
+      "base_url": "https://api.anthropic.com/v1",
+      "models_endpoint": "https://api.anthropic.com/v1/models",
+      "api_key_param": "anthropic_api_key",
+      "max_tokens_param": "max_tokens",
+      "vision": {
+        "enabled": true
+      },
+      "max_output_tokens": {
+        "claude-opus-5": 128000,
+        "claude-fable-5-1": 128000,
+        "claude-fable-5": 128000,
+        "claude-opus-4-8": 128000,
+        "claude-opus-4-7": 128000,
+        "claude-sonnet-5": 128000,
+        "claude-sonnet-4-6": 128000,
+        "claude-haiku-4-5": 64000,
+        "_default": 8192
+      },
+      "context_length": {
+        "claude-opus-5": 1048576,
+        "claude-fable-5-1": 1048576,
+        "claude-fable-5": 1048576,
+        "claude-opus-4-8": 1048576,
+        "claude-opus-4-7": 1048576,
+        "claude-sonnet-5": 1048576,
+        "claude-sonnet-4-6": 1048576,
+        "claude-haiku-4-5": 200000,
+        "_default": 200000
+      },
+      "thinking_type": "budget",
+      "_capability_note": "Two request-shape breaks landed together in the Claude 4.7+ generations: `temperature`/`top_p`/`top_k` are rejected (400 `temperature is deprecated for this model`), and the `{type: enabled, budget_tokens: N}` thinking form is rejected in favour of `{type: adaptive}`. Both lists are prefix-matched by AnthropicProvider._model_policy. claude-opus-4-6 / claude-sonnet-4-6 are deliberately absent: adaptive is recommended there but budget_tokens still works, so they keep the legacy shape until Anthropic removes it.",
+      "adaptive_thinking_models": [
+        "claude-fable-5",
+        "claude-mythos-5",
+        "claude-opus-5",
+        "claude-opus-4-8",
+        "claude-opus-4-7",
+        "claude-sonnet-5"
+      ],
+      "sampling_params_removed": [
+        "claude-fable-5",
+        "claude-mythos-5",
+        "claude-opus-5",
+        "claude-opus-4-8",
+        "claude-opus-4-7",
+        "claude-sonnet-5"
+      ],
+      "temperature_range": [0.0, 1.0]
+    },
+    "gemini": {
+      "display_name": "Gemini",
+      "default_model": "gemini-3.8-flash",
+      "popular_models": ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-pro-preview", "gemini-3.1-flash-lite", "gemini-3-flash-preview", "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite"],
+      "detection_patterns": ["gemini", "google", "gemma"],
+      "_detection_patterns_note": "'gemma' makes is_model_valid_for_provider accept the API-served Gemma models (gemma-4-*-it) on gemini nodes — without it the four agent-path call sites silently swap gemma to default_model. Cerebras keeps its own 'gemma-4' pattern for its gemma-4-31b (no -it suffix); is_model_valid_for_provider is per-provider so both coexist. Only the runtime-unused detect_provider_from_model classifier prefers gemini for gemma-* names (dict order).",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta",
+      "models_endpoint": "https://generativelanguage.googleapis.com/v1beta/models",
+      "api_key_param": "google_api_key",
+      "max_tokens_param": "max_output_tokens",
+      "vision": {
+        "enabled": false,
+        "_note": "See openai.vision._note — off until the Gemini encoder renders inline_data parts beside function_response."
+      },
+      "_models_note": "Real (concrete) model names only — no -latest rolling aliases. The curated list (max_output_tokens keys) serves BOTH the Gemini Developer API (AIza keys) and Vertex / Agent Platform (AQ. keys); gemini-* entries live-verified on both endpoints (2026-06-12). Vertex 404s on -latest aliases and its models.list rejects API keys, which is why the dropdown is curated instead of live-fetched. Gemma exception: gemma-4-31b-it + gemma-4-26b-a4b-it are served ONLY on the Developer API (free tier, ai.google.dev/gemma/docs/core/gemma_on_gemini_api, verified 2026-07-11) — Vertex keys must not see them, hence vertex_incompatible_models below. Gemma 4 supports systemInstruction and function calling natively (unlike the gemma-3 era); max output is undocumented, so the curated 8192 is a conservative fallback (registry cache wins when present).",
+      "max_output_tokens": {
+        "gemini-3.8-flash": 65536,
+        "gemini-3.7-flash": 65536,
+        "gemini-3.6-flash": 65536,
+        "gemini-3.5-flash": 65536,
+        "gemini-3.5-flash-lite": 65536,
+        "gemini-3.1-pro-preview": 65536,
+        "gemini-3.1-flash-lite": 65536,
+        "gemini-3-flash-preview": 65536,
+        "gemini-2.5-pro": 65536,
+        "gemini-2.5-flash": 65535,
+        "gemini-2.5-flash-lite": 65535,
+        "gemma-4-31b-it": 8192,
+        "gemma-4-26b-a4b-it": 8192,
+        "_default": 8192
+      },
+      "context_length": {
+        "gemini-3.8-flash": 1048576,
+        "gemini-3.7-flash": 1048576,
+        "gemini-3.6-flash": 1048576,
+        "gemini-3.5-flash": 1048576,
+        "gemini-3.5-flash-lite": 1048576,
+        "gemini-3.1-pro-preview": 1048576,
+        "gemini-3.1-flash-lite": 1048576,
+        "gemini-3-flash-preview": 1048576,
+        "gemini-2.5-pro": 1048576,
+        "gemini-2.5-flash": 1048576,
+        "gemini-2.5-flash-lite": 1048576,
+        "gemma-4-31b-it": 262144,
+        "gemma-4-26b-a4b-it": 262144,
+        "_default": 1048576
+      },
+      "_vertex_incompatible_models_note": "Curated models that only exist on the Gemini Developer API, filtered out of fetch_models when the key is a Vertex / Agent Platform key (GeminiProvider._vertex). Gemma is Model Garden self-deploy on Vertex (the 26B MaaS variant needs a different '-maas' id on a different surface), so the plain ids 404 there.",
+      "vertex_incompatible_models": ["gemma-4-31b-it", "gemma-4-26b-a4b-it"],
+      "thinking_models": ["gemini-2.5", "gemini-3"],
+      "_new_models_note": "gemini-3.8-flash (new default) and gemini-3.7-flash appear in the 2026-09-03 registry refresh with the same shape as 3.6 Flash (1M context / 65536 max output, $0.75/$3.75 per the OpenRouter cache); they are curated from the registry and NOT yet live-verified against Vertex / Agent Platform keys like the older entries — drop them into vertex_incompatible_models if a Vertex 404 shows up. gemini-3.6-flash and gemini-3.5-flash-lite launched 2026-07-21; Flash-Lite is $0.30/$2.50. gemini-3.5-pro is still not GA on the public API (enterprise Vertex preview only) so it stays out of the curated list.",
+      "thinking_type": "budget",
+      "temperature_range": [0.0, 2.0],
+      "_incompatible_models_note": "Models that the dropdown should hide because they need a different API endpoint than `generate_content`. antigravity-preview-05-2026 requires the Interactions API; selecting it currently surfaces a `google.genai.errors.APIError`. ChatUnifier reads this list in fetch_models and filters before returning. Drop entries here when the unifier gains routing support for the alternate endpoint.",
+      "incompatible_models": ["antigravity-preview-05-2026"]
+    },
+    "openrouter": {
+      "display_name": "OpenRouter",
+      "default_model": "anthropic/claude-sonnet-5",
+      "popular_models": ["anthropic/claude-sonnet-5", "openai/gpt-5.6-terra", "openai/gpt-5.6-sol", "openai/gpt-6-astra", "google/gemini-3.5-flash", "moonshotai/kimi-k3", "x-ai/grok-4.20"],
+      "detection_patterns": ["openrouter"],
+      "base_url": "https://openrouter.ai/api/v1",
+      "models_endpoint": "https://openrouter.ai/api/v1/models",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "extra_headers": {"HTTP-Referer": "http://localhost:5678", "X-Title": "OpenCompany"},
+      "max_output_tokens": {
+        "_default": 4096
+      },
+      "context_length": {
+        "_default": 128000
+      },
+      "temperature_range": [0.0, 2.0]
+    },
+    "groq": {
+      "display_name": "Groq",
+      "default_model": "openai/gpt-oss-120b",
+      "popular_models": [],
+      "_popular_note": "Empty per the 1M-context policy — no Groq-served model reaches 1M (all top out at 131072). Models remain reachable via live fetch_models.",
+      "detection_patterns": ["groq"],
+      "base_url": "https://api.groq.com/openai/v1",
+      "models_endpoint": "https://api.groq.com/openai/v1/models",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "_models_note": "Default moved to openai/gpt-oss-120b (production route). Groq announced deprecation of llama-3.3-70b-versatile and llama-3.1-8b-instant on 2026-06-17 (console.groq.com/docs/deprecations); kept in the list while still served — they fall back to _default constraints after removal.",
+      "max_output_tokens": {
+        "openai/gpt-oss-120b": 65536,
+        "openai/gpt-oss-20b": 65536,
+        "llama-3.3-70b-versatile": 32768,
+        "llama-3.1-8b-instant": 131072,
+        "qwen/qwen3-32b": 40960,
+        "_default": 8192
+      },
+      "context_length": {
+        "openai/gpt-oss-120b": 131072,
+        "openai/gpt-oss-20b": 131072,
+        "llama-3.3-70b-versatile": 131072,
+        "llama-3.1-8b-instant": 131072,
+        "qwen/qwen3-32b": 131072,
+        "_default": 131072
+      },
+      "thinking_models": ["qwen3"],
+      "thinking_type": "format",
+      "temperature_range": [0.0, 2.0]
+    },
+    "cerebras": {
+      "display_name": "Cerebras",
+      "default_model": "gpt-oss-120b",
+      "popular_models": [],
+      "_popular_note": "Empty per the 1M-context policy — no Cerebras model reaches 1M (all 131072). Models remain reachable via live fetch_models.",
+      "detection_patterns": ["cerebras", "gpt-oss", "zai-glm", "gemma-4"],
+      "base_url": "https://api.cerebras.ai/v1",
+      "models_endpoint": "https://api.cerebras.ai/v1/models",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "_models_note": "Per inference-docs.cerebras.ai 2026-07-11: gpt-oss-120b is the only production model (paid tier 131k context / 40k max completion); zai-glm-4.7 and gemma-4-31b are preview. qwen-3-235b* variants are shut down (migration target: gpt-oss-120b).",
+      "max_output_tokens": {
+        "gpt-oss-120b": 40960,
+        "zai-glm-4.7": 40960,
+        "gemma-4-31b": 40960,
+        "_default": 8192
+      },
+      "context_length": {
+        "gpt-oss-120b": 131072,
+        "zai-glm-4.7": 131072,
+        "gemma-4-31b": 131072,
+        "_default": 131072
+      },
+      "thinking_models": ["zai-glm-4.7"],
+      "thinking_type": "budget",
+      "temperature_range": [0.0, 1.5]
+    },
+    "xai": {
+      "display_name": "xAI",
+      "default_model": "grok-4.20",
+      "popular_models": ["grok-4.20", "grok-4.20-multi-agent", "grok-4.3"],
+      "_popular_note": "grok-4.6 (registry 2026-09-03, 500K context, $2/$6), grok-4.5 (released 2026-07-08) and grok-3 excluded per the 1M-context policy (500K / 500K / 131072); reachable via live fetch_models. Default stays grok-4.20 (2M) so the default is selectable from the global list.",
+      "detection_patterns": ["grok", "xai"],
+      "base_url": "https://api.x.ai/v1",
+      "models_endpoint": "https://api.x.ai/v1/models",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "_models_note": "grok-4.5 (released 2026-07-08): 500K context, configurable reasoning effort (default high), $2/$6 per MTok. Output cap undocumented by xAI — curated 131072 matches the rest of the grok family; registry cache wins when present.",
+      "max_output_tokens": {
+        "grok-4.6": 131072,
+        "grok-4.5": 131072,
+        "grok-4.20": 131072,
+        "grok-4.3": 131072,
+        "grok-3": 131072,
+        "_default": 8192
+      },
+      "context_length": {
+        "grok-4.20": 2000000,
+        "grok-4.20-multi-agent": 2000000,
+        "grok-4.6": 500000,
+        "grok-4.5": 500000,
+        "grok-4.3": 1000000,
+        "grok-3": 131072,
+        "_default": 131072
+      },
+      "temperature_range": [0.0, 2.0]
+    },
+    "deepseek": {
+      "display_name": "DeepSeek",
+      "default_model": "deepseek-v4-flash",
+      "popular_models": ["deepseek-v4-flash", "deepseek-v4.1-flash", "deepseek-v4-pro"],
+      "_popular_note": "deepseek-chat / deepseek-reasoner dropped from the global list per the 1M-context policy (131072); reachable via live fetch_models.",
+      "_models_note": "deepseek-v4.1-flash appears in the 2026-09-11 registry refresh ($0.15/$0.60 per MTok, 1M context; the router cache reports a 384K max output, curated at the same 65536 as v4-flash until DeepSeek documents the cap). Default stays deepseek-v4-flash ($0.085/$0.17). Dated snapshots (-0731 / -0813), the vision-exp preview and the -latest alias are deliberately not curated.",
+      "detection_patterns": ["deepseek"],
+      "base_url": "https://api.deepseek.com",
+      "models_endpoint": "https://api.deepseek.com/models",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "supported_params": ["temperature", "max_tokens", "top_p", "frequency_penalty", "presence_penalty", "stop", "seed", "tools", "tool_choice", "response_format"],
+      "max_output_tokens": {
+        "deepseek-v4-flash": 65536,
+        "deepseek-v4.1-flash": 65536,
+        "deepseek-v4-pro": 65536,
+        "deepseek-chat": 8192,
+        "deepseek-reasoner": 65536,
+        "_default": 8192
+      },
+      "context_length": {
+        "deepseek-v4-flash": 1048576,
+        "deepseek-v4.1-flash": 1048576,
+        "deepseek-v4-pro": 1048576,
+        "deepseek-chat": 131072,
+        "deepseek-reasoner": 131072,
+        "_default": 131072
+      },
+      "reasoning_models": ["deepseek-reasoner"],
+      "temperature_range": [0.0, 2.0]
+    },
+    "kimi": {
+      "display_name": "Kimi",
+      "default_model": "kimi-k3",
+      "popular_models": ["kimi-k3"],
+      "_popular_note": "Only kimi-k3 meets the 1M-context policy (k2.x are 262144); k2.x remain reachable via live fetch_models.",
+      "_models_note": "kimi-k3 GA (platform.kimi.ai): 2.8T params, 1M context, vision + tool calling + structured outputs, $3/$15 per MTok ($0.30 cache-hit). Default max_completion_tokens 131072 (configurable up to the full window). k2.x kept as cheaper tiers.",
+      "detection_patterns": ["kimi", "moonshot"],
+      "base_url": "https://api.moonshot.ai/v1",
+      "models_endpoint": "https://api.moonshot.ai/v1/models",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "supported_params": ["temperature", "max_tokens", "top_p", "frequency_penalty", "presence_penalty", "stop", "seed", "tools", "tool_choice", "response_format"],
+      "thinking_default_on": ["kimi-k2.6", "kimi-k2.5", "kimi-k2.7-code"],
+      "fixed_temperature": {"kimi-k2.6": 0.6, "kimi-k2.5": 0.6, "kimi-k2.7-code": 0.6},
+      "max_output_tokens": {
+        "kimi-k3": 131072,
+        "kimi-k2.6": 32768,
+        "kimi-k2.5": 98304,
+        "kimi-k2.7-code": 98304,
+        "_default": 8192
+      },
+      "context_length": {
+        "kimi-k3": 1048576,
+        "kimi-k2.6": 262144,
+        "kimi-k2.5": 262144,
+        "kimi-k2.7-code": 262144,
+        "_default": 262144
+      },
+      "temperature_range": [0.0, 1.0]
+    },
+    "mistral": {
+      "display_name": "Mistral",
+      "default_model": "mistral-large-latest",
+      "popular_models": [],
+      "_popular_note": "Empty per the 1M-context policy — Mistral tops out at 262144 (large/medium). Models remain reachable via live fetch_models.",
+      "detection_patterns": ["mistral", "codestral"],
+      "base_url": "https://api.mistral.ai/v1",
+      "models_endpoint": "https://api.mistral.ai/v1/models",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "supported_params": ["temperature", "max_tokens", "top_p", "frequency_penalty", "presence_penalty", "stop", "seed", "tools", "tool_choice", "response_format"],
+      "max_output_tokens": {
+        "mistral-large-latest": 131072,
+        "mistral-medium-latest": 131072,
+        "mistral-small-latest": 32768,
+        "codestral-latest": 131072,
+        "_default": 8192
+      },
+      "context_length": {
+        "mistral-large-latest": 262144,
+        "mistral-medium-latest": 262144,
+        "mistral-small-latest": 32768,
+        "codestral-latest": 256000,
+        "_default": 131072
+      },
+      "temperature_range": [0.0, 1.5]
+    },
+    "sarvam": {
+      "display_name": "Sarvam AI",
+      "default_model": "sarvam-105b",
+      "popular_models": [],
+      "_popular_note": "Empty per the 1M-context policy — sarvam-105b tops out at 131072. Both models stay reachable via the per-node dropdown (fetch_models returns the curated list) and via the global selector, which falls back to the max_output_tokens keys when popular_models is empty.",
+      "_models_note": "sarvam-105b (128K ctx) and sarvam-30b (64K ctx), OpenAI-compatible at api.sarvam.ai/v1. sarvam-m is deprecated/removed and deliberately absent. Reasoning is ON by default (reasoning_effort defaults to 'medium' server-side) and the trace comes back as message.reasoning_content, which OpenAIProvider._normalize already reads.",
+      "detection_patterns": ["sarvam"],
+      "base_url": "https://api.sarvam.ai/v1",
+      "models_endpoint": "",
+      "supports_model_listing": false,
+      "_models_listing_note": "Sarvam ships NO model-list endpoint — verified against https://docs.sarvam.ai/openapi.json (25 paths, none for model listing). OpenAIProvider.fetch_models reads this flag and swaps models.list() for a 1-token chat probe plus the curated list. Without it the 404 becomes an openai.OpenAIError, ChatUnifier turns that into NodeUserError, and AIService.fetch_models re-raises before its curated fallback — breaking both credential validation and the model dropdown.",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "supported_params": ["temperature", "max_tokens", "top_p", "frequency_penalty", "presence_penalty", "stop", "seed", "n", "tools", "tool_choice", "response_format", "reasoning_effort"],
+      "max_output_tokens": {
+        "sarvam-105b": 4096,
+        "sarvam-30b": 4096,
+        "_default": 4096
+      },
+      "_max_output_note": "SUBSCRIPTION-TIER CAP, not a model limit — this is the one provider here whose output ceiling depends on the ACCOUNT rather than the model. Sarvam documents Starter 4096 / Pro 16384 / Business 128000 for sarvam-105b and 4096 / 8192 / 64000 for sarvam-30b, and rejects anything above your tier with a 400 ('max_tokens (N) exceeds the maximum allowed ... for your subscription tier'). services/llm/config.py::resolve_max_tokens uses this number BOTH as the default budget when a node leaves max_tokens unset AND as the ceiling it clamps larger user values down to, so a single value has to hold for every account — hence the Starter cap, the only figure that succeeds on all tiers. Sarvam's own API default is 2048, so 4096 is already generous. ON PRO OR BUSINESS: raise these to your tier's ceiling (setting max_tokens on the node alone is NOT enough — resolve_max_tokens clamps it back down to whatever is written here). Do not use the Business figures as a default: they are ~98% of each context window, leaving no room for a prompt.",
+      "context_length": {
+        "sarvam-105b": 131072,
+        "sarvam-30b": 65536,
+        "_default": 65536
+      },
+      "thinking_models": ["sarvam-"],
+      "thinking_type": "effort",
+      "_thinking_note": "reasoning_models is deliberately empty: listing sarvam there would set temperature_allowed=False and pin temperature to 1.0, but Sarvam accepts temperature alongside reasoning. thinking_default_on is deliberately absent too — it emits Moonshot's proprietary extra_body.thinking={'type':'disabled'}, which Sarvam never documented. With both omitted, thinking off = Sarvam's own default (reasoning on, effort medium) and thinking on = our reasoning_effort.",
+      "temperature_range": [0.0, 2.0]
+    },
+
+    "ollama": {
+      "display_name": "Ollama",
+      "_description": "Local Ollama server (OpenAI-compatible /v1). No `default_model` because the dropdown should reflect the user's actually-pulled models — fetch_models hits the user's saved {provider}_proxy URL and returns whatever Ollama reports; when the server is offline we want an empty list (a 'start your server' cue), not a placeholder name the user almost certainly doesn't have.",
+      "detection_patterns": ["ollama"],
+      "base_url": "http://localhost:11434/v1",
+      "models_endpoint": "http://localhost:11434/v1/models",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "max_output_tokens": {"_default": 4096},
+      "context_length": {"_default": 32768},
+      "temperature_range": [0.0, 2.0]
+    },
+
+    "lmstudio": {
+      "display_name": "LM Studio",
+      "_description": "Local LM Studio server (pure OpenAI-compatible). Same no-default-model rule as ollama — the dropdown reflects what the user has loaded in LM Studio, not a fake placeholder.",
+      "detection_patterns": ["lmstudio", "lm_studio", "lm-studio"],
+      "base_url": "http://localhost:1234/v1",
+      "models_endpoint": "http://localhost:1234/v1/models",
+      "api_key_param": "api_key",
+      "max_tokens_param": "max_tokens",
+      "max_output_tokens": {"_default": 4096},
+      "context_length": {"_default": 32768},
+      "temperature_range": [0.0, 2.0]
+    }
+  }
+}

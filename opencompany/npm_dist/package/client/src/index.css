@@ -1,0 +1,505 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================================
+ * Base resets + Tailwind v4 plumbing.
+ *
+ * Token VALUES live in the per-theme files (client/src/themes/*.css):
+ * light.css / dark.css own the shadcn + dracula + node + action colour
+ * hex; base.css owns the shared scale / chrome / shadow / type / tint
+ * tokens. This file holds only the global resets and the `@theme inline`
+ * bridge that maps `--color-X: var(--X)` so Tailwind utilities resolve
+ * against whichever theme is active. Colours are hex / color-mix, so the
+ * bridge uses bare var() (no hsl() wrapper); Tailwind v4 still composes
+ * `/opacity` via color-mix().
+ * ============================================================================ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  #root {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* ============================================================================
+ * Tailwind v4 @theme inline — exposes our CSS vars as Tailwind tokens
+ * (e.g. `bg-background`, `text-primary`, `bg-dracula-green`).
+ * ============================================================================ */
+
+@theme inline {
+  /* Color tokens are now hex / color-mix (not HSL triplets), so the bridge
+   * maps `--color-X: var(--X)` directly — NO hsl() wrapper. Tailwind v4
+   * still composes `/opacity` (e.g. bg-primary/50) by wrapping any color
+   * in color-mix(), so utilities keep working against hex values. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-dracula-green: var(--dracula-green);
+  --color-dracula-purple: var(--dracula-purple);
+  --color-dracula-pink: var(--dracula-pink);
+  --color-dracula-cyan: var(--dracula-cyan);
+  --color-dracula-red: var(--dracula-red);
+  --color-dracula-orange: var(--dracula-orange);
+  --color-dracula-yellow: var(--dracula-yellow);
+  --color-dracula-selection: var(--dracula-selection);
+  --color-dracula-current-line: var(--dracula-current-line);
+  --color-dracula-comment: var(--dracula-comment);
+
+  /* Node-type tokens — base + soft (tinted bg) + border (tinted outline).
+   * Use bg-node-X / bg-node-X-soft / border-node-X-border directly,
+   * never with /N opacity arithmetic. */
+  --color-node-agent:           var(--node-agent);
+  --color-node-agent-soft:      var(--node-agent-soft);
+  --color-node-agent-border:    var(--node-agent-border);
+  --color-node-model:           var(--node-model);
+  --color-node-model-soft:      var(--node-model-soft);
+  --color-node-model-border:    var(--node-model-border);
+  --color-node-skill:           var(--node-skill);
+  --color-node-skill-soft:      var(--node-skill-soft);
+  --color-node-skill-border:    var(--node-skill-border);
+  --color-node-tool:            var(--node-tool);
+  --color-node-tool-soft:       var(--node-tool-soft);
+  --color-node-tool-border:     var(--node-tool-border);
+  --color-node-trigger:         var(--node-trigger);
+  --color-node-trigger-soft:    var(--node-trigger-soft);
+  --color-node-trigger-border:  var(--node-trigger-border);
+  --color-node-workflow:        var(--node-workflow);
+  --color-node-workflow-soft:   var(--node-workflow-soft);
+  --color-node-workflow-border: var(--node-workflow-border);
+
+  /* Toolbar / action role tokens — base + -soft + -hover + -border + -ink.
+   * Use bg-action-X-soft + text-action-X-ink + border-action-X-border for
+   * the standard "soft tinted button" look (see ActionButton CVA). */
+  --color-action-run:           var(--action-run);
+  --color-action-run-soft:      var(--action-run-soft);
+  --color-action-run-hover:     var(--action-run-hover);
+  --color-action-run-border:    var(--action-run-border);
+  --color-action-run-ink:       var(--action-run-ink);
+  --color-action-stop:          var(--action-stop);
+  --color-action-stop-soft:     var(--action-stop-soft);
+  --color-action-stop-hover:    var(--action-stop-hover);
+  --color-action-stop-border:   var(--action-stop-border);
+  --color-action-stop-ink:      var(--action-stop-ink);
+  --color-action-save:          var(--action-save);
+  --color-action-save-soft:     var(--action-save-soft);
+  --color-action-save-hover:    var(--action-save-hover);
+  --color-action-save-border:   var(--action-save-border);
+  --color-action-save-ink:      var(--action-save-ink);
+  --color-action-config:        var(--action-config);
+  --color-action-config-soft:   var(--action-config-soft);
+  --color-action-config-hover:  var(--action-config-hover);
+  --color-action-config-border: var(--action-config-border);
+  --color-action-config-ink:    var(--action-config-ink);
+  --color-action-secret:        var(--action-secret);
+  --color-action-secret-soft:   var(--action-secret-soft);
+  --color-action-secret-hover:  var(--action-secret-hover);
+  --color-action-secret-border: var(--action-secret-border);
+  --color-action-secret-ink:    var(--action-secret-ink);
+  --color-action-tools:         var(--action-tools);
+  --color-action-tools-soft:    var(--action-tools-soft);
+  --color-action-tools-hover:   var(--action-tools-hover);
+  --color-action-tools-border:  var(--action-tools-border);
+  --color-action-tools-ink:     var(--action-tools-ink);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: 'Geist Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+
+  /* ── New-contract tokens (design_handoff_machinaos_themes) ──────────
+   * Surface / foreground / semantic / typography / radius tokens
+   * exposed as Tailwind utilities. Defined per-theme in client/src/
+   * themes/{light,dark,renaissance,cyber}.css — themes redefine the
+   * `--bg-app`, `--fg-default`, etc. CSS variables under
+   * `:root[data-theme="..."]`; these `@theme inline` aliases give
+   * Tailwind classes that resolve against whichever theme is active.
+   *
+   * Note: full-colour values (not HSL triplets), so `bg-bg-app/50`
+   * alpha composition does NOT work — use `--bg-overlay` or the
+   * shadcn alias (`bg-background/50`) when you need alpha. */
+  --color-bg-app:      var(--bg-app);
+  --color-bg-panel:    var(--bg-panel);
+  --color-bg-canvas:   var(--bg-canvas);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-input:    var(--bg-input);
+  --color-bg-hover:    var(--bg-hover);
+  --color-bg-active:   var(--bg-active);
+  --color-bg-overlay:  var(--bg-overlay);
+
+  --color-fg-default:    var(--fg-default);
+  --color-fg-muted:      var(--fg-muted);
+  --color-fg-faint:      var(--fg-faint);
+  --color-fg-on-accent:  var(--fg-on-accent);
+  --color-fg-on-success: var(--fg-on-success);
+  --color-fg-on-danger:  var(--fg-on-danger);
+  --color-fg-on-warning: var(--fg-on-warning);
+
+  /* Border tokens — exposed as Tailwind colour utilities so call sites
+   * can write `border-default`, `border-strong`, `border-focus` /
+   * `bg-border-default` etc. */
+  --color-border-default: var(--border-default);
+  --color-border-strong:  var(--border-strong);
+  --color-border-focus:   var(--border-focus);
+
+  /* Typography family aliases — `font-display`, `font-body` (font-mono
+   * is already exposed above; we re-declare it here so it tracks the
+   * per-theme `--font-mono` instead of the static fallback). */
+  --font-display: var(--font-display);
+  --font-body:    var(--font-body);
+
+  --radius-pill: var(--radius-pill);
+
+  /* Code & syntax tokens -> Tailwind utilities (text-code-tag, bg-code-bg, …).
+   * Defined per-theme in client/src/themes/<theme>.css. */
+  --color-code-bg:          var(--code-bg);
+  --color-code-gutter-bg:   var(--code-gutter-bg);
+  --color-code-gutter-fg:   var(--code-gutter-fg);
+  --color-code-text:        var(--code-text);
+  --color-code-comment:     var(--code-comment);
+  --color-code-keyword:     var(--code-keyword);
+  --color-code-string:      var(--code-string);
+  --color-code-number:      var(--code-number);
+  --color-code-boolean:     var(--code-boolean);
+  --color-code-function:    var(--code-function);
+  --color-code-property:    var(--code-property);
+  --color-code-operator:    var(--code-operator);
+  --color-code-punctuation: var(--code-punctuation);
+  --color-code-tag:         var(--code-tag);
+}
+
+/* ============================================================================
+ * React Flow chrome — light + dark
+ * ============================================================================ */
+
+/* `.react-flow` is intentionally transparent so the parent
+ * `.canvas-host` / `.canvas` `background-image` (per-theme
+ * `--canvas-grid` + multi-layer gradient stack) paints through.
+ * Per the upstream v11 stylesheet, `.react-flow` ships with only
+ * `direction: ltr;` — no background. Painting one here would hide
+ * the per-theme decorations (Cyber perspective grid, Renaissance
+ * fleur-de-lis, Surveillance CCTV reticle, etc.). When migrating
+ * to @xyflow/react v12, set `--xy-background-color: transparent;`
+ * on `.xy-flow` (v12 sets a default opaque background via custom
+ * property). */
+
+.react-flow__background pattern circle {
+  fill: color-mix(in srgb, var(--muted-foreground) 30%, transparent) !important;
+}
+
+.react-flow__controls,
+.react-flow__minimap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+.dark .react-flow__controls,
+.dark .react-flow__minimap {
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.3);
+}
+
+.react-flow__controls button {
+  background: var(--card);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.react-flow__controls button:last-child {
+  border-bottom: none;
+}
+
+.react-flow__controls button:hover {
+  background: var(--muted);
+}
+
+.react-flow__controls button svg,
+.react-flow__controls button svg path {
+  fill: var(--foreground) !important;
+}
+
+.react-flow__attribution {
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  color: var(--muted-foreground);
+}
+
+.react-flow__selection {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
+.react-flow__connection-line {
+  stroke: var(--muted-foreground);
+  stroke-width: 2;
+}
+
+/* ============================================================================
+ * Brand-color tint utilities — for sites where the color is data-driven
+ * (provider.color, definition.defaults.color, skill.color) and can't
+ * use a node-X token. Apply alongside `style={{ color: brandColor }}`
+ * (or any class that sets the foreground color); these utilities mix
+ * `currentColor` against `transparent` at the canonical alphas defined
+ * in :root (`--tint-soft`, `--tint-border`).
+ * ============================================================================ */
+
+.bg-tint-soft {
+  background-color: color-mix(in srgb, currentColor var(--tint-soft), transparent);
+}
+
+.border-tint {
+  border-color: color-mix(in srgb, currentColor var(--tint-border), transparent);
+}
+
+/* ============================================================================
+ * Scrollbars
+ * ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--muted);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--muted);
+}
+
+/* ============================================================================
+ * Animations
+ * ============================================================================ */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.03); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+ * ConsolePanel — Prism token colors + chat markdown theming.
+ * Static CSS vars; dark-mode overrides via `.dark` cascade.
+ * ============================================================================ */
+
+.console-json-output .token.string { color: var(--code-string); }
+.console-json-output .token.number,
+.console-json-output .token.boolean,
+.console-json-output .token.null { color: var(--code-number); }
+.console-json-output .token.property { color: var(--code-tag); }
+.console-json-output .token.punctuation { color: var(--code-punctuation); }
+.console-json-output .token.operator { color: var(--code-operator); }
+
+/* ----------------------------------------------------------------------------
+ * @uiw/react-json-view — palette mapped onto the theme's --code-* tokens.
+ *
+ * The library reads every colour as `var(--w-rjv-*, <fallback>)` (see its
+ * esm/index.js), so its documented theming API is plain CSS custom properties.
+ * Declaring them here rather than passing one of its bundled theme objects
+ * through the `style` prop means: every <JsonView> in the app is themed with no
+ * per-call-site code, and all 12 themes repaint on `data-theme` change through
+ * the normal cascade instead of a React re-render.
+ * -------------------------------------------------------------------------- */
+
+:root {
+  --w-rjv-background-color: var(--code-bg);
+  --w-rjv-color: var(--code-text);
+  --w-rjv-key-string: var(--code-tag);
+  --w-rjv-line-color: var(--code-border);
+  --w-rjv-arrow-color: var(--code-gutter-fg);
+  --w-rjv-info-color: var(--code-comment);
+  --w-rjv-ellipsis-color: var(--code-comment);
+  --w-rjv-brackets-color: var(--code-punctuation);
+  --w-rjv-curlybraces-color: var(--code-punctuation);
+  --w-rjv-colon-color: var(--code-punctuation);
+  --w-rjv-quotes-color: var(--code-string);
+  --w-rjv-quotes-string-color: var(--code-string);
+  --w-rjv-type-string-color: var(--code-string);
+  --w-rjv-type-int-color: var(--code-number);
+  --w-rjv-type-float-color: var(--code-number);
+  --w-rjv-type-bigint-color: var(--code-number);
+  --w-rjv-type-boolean-color: var(--code-boolean);
+  --w-rjv-type-null-color: var(--code-number);
+  --w-rjv-type-nan-color: var(--code-number);
+  --w-rjv-type-undefined-color: var(--code-comment);
+  --w-rjv-type-date-color: var(--code-string);
+}
+
+.chat-markdown p { margin: 0 0 8px 0; }
+.chat-markdown p:last-child { margin-bottom: 0; }
+.chat-markdown h1,
+.chat-markdown h2,
+.chat-markdown h3 {
+  margin: 12px 0 8px 0;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.chat-markdown h1:first-child,
+.chat-markdown h2:first-child,
+.chat-markdown h3:first-child { margin-top: 0; }
+.chat-markdown h1 { font-size: 1.25em; }
+.chat-markdown h2 { font-size: 1.1em; }
+.chat-markdown h3 { font-size: 1em; }
+.chat-markdown strong { font-weight: 600; color: var(--foreground); }
+.chat-markdown em { font-style: italic; }
+.chat-markdown ul,
+.chat-markdown ol { margin: 8px 0; padding-left: 20px; }
+.chat-markdown li { margin: 4px 0; }
+.chat-markdown code {
+  background-color: color-mix(in srgb, var(--border) 30%, transparent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+.dark .chat-markdown code {
+  background-color: var(--code-bg);
+}
+.chat-markdown pre {
+  background-color: var(--card);
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+.dark .chat-markdown pre {
+  background-color: var(--code-bg);
+}
+.chat-markdown pre code { background: none; padding: 0; }
+.chat-markdown table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  width: 100%;
+  font-size: 0.9em;
+}
+.chat-markdown th,
+.chat-markdown td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+.dark .chat-markdown th,
+.dark .chat-markdown td {
+  border-color: var(--code-border);
+}
+.chat-markdown th {
+  background-color: var(--card);
+  font-weight: 600;
+}
+.dark .chat-markdown th {
+  background-color: var(--code-gutter-bg);
+}
+.chat-markdown blockquote {
+  border-left: 3px solid var(--primary);
+  margin: 8px 0;
+  padding: 4px 12px;
+  color: var(--muted-foreground);
+}
+.dark .chat-markdown blockquote {
+  border-left-color: var(--code-keyword);
+}
+.chat-markdown a {
+  color: var(--primary);
+  text-decoration: none;
+}
+.dark .chat-markdown a {
+  color: var(--code-property);
+}
+.chat-markdown a:hover { text-decoration: underline; }
+.chat-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 12px 0;
+}
+.dark .chat-markdown hr {
+  border-top-color: var(--code-border);
+}
+
+/* ============================================================================
+ * Syntax-highlighting palette — used by react-simple-code-editor + the
+ * console/output JSON viewers. Token colors read the per-theme --code-*
+ * tokens (defined in client/src/themes/<theme>.css), so each theme paints
+ * code in its own palette on its own code surface.
+ * ============================================================================ */
+
+.code-editor-container { background: var(--code-bg); }
+.code-editor-container .token.comment     { color: var(--code-comment); }
+.code-editor-container .token.string      { color: var(--code-string); }
+.code-editor-container .token.keyword     { color: var(--code-keyword); }
+.code-editor-container .token.function    { color: var(--code-function); }
+.code-editor-container .token.number      { color: var(--code-number); }
+.code-editor-container .token.operator    { color: var(--code-operator); }
+.code-editor-container .token.class-name  { color: var(--code-property); }
+.code-editor-container .token.builtin     { color: var(--code-property); }
+.code-editor-container .token.boolean     { color: var(--code-boolean); }
+.code-editor-container .token.punctuation { color: var(--code-punctuation); }
+.code-editor-container textarea           { outline: none !important; caret-color: var(--code-caret); }
+.code-editor-container textarea::placeholder { color: var(--muted-foreground); }

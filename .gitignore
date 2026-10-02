@@ -1,0 +1,81 @@
+# Dependencies
+**/node_modules/
+**/.pnpm-store/
+**/.npm/
+
+# Python & Virtual Environments
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.venv/
+**/venv/
+**/env/
+**/ENV/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/*.egg-info/
+**/.eggs/
+
+# Build caches & temporary files
+**/.next/cache/
+**/.turbo/
+**/.cache/
+**/*.tmp
+**/*.temp
+MagicMock/
+test-temp*/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Databases and persistent runtime storage
+backend/db.sqlite3
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+opencompany_data/
+agentpulse_data/
+minio_data/
+data/
+opencompany/data/
+**/server/data/
+**/server/*.db
+
+# Large archives and binaries
+*.tar.gz
+*.tgz
+*.zip
+*.whl
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Sensitive files
+**/.env.local
+**/.env.*.local
+**/credentials.json
+**/secrets.json
+**/apikeys.json
+**/*.pem
+**/*.key
+**/*.crt
+
+# OS and Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.sw?
+*~

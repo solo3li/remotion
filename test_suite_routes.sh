@@ -38,6 +38,10 @@ run_check "Elah Home HTML" "${BASE_URL}/elah/" "200"
 run_check "Elah Video Editor Route" "${BASE_URL}/elah/editor" "200"
 run_check "Elah Production Playground" "${BASE_URL}/elah/playground/production" "200"
 run_check "Elah Static Asset (Woff2 Font)" "${BASE_URL}/elah/_next/static/media/017d9bea37084d9b-s.p.41rroleoq1br7.woff2" "200"
+run_check "Elah Logo Asset (Root Fallback)" "${BASE_URL}/elah-mark.png" "200"
+run_check "Elah Logo Asset (Prefix Path)" "${BASE_URL}/elah/elah-mark.png" "200"
+run_check "Elah Freesound API Route" "${BASE_URL}/api/freesound" "200"
+run_check "Elah Pixabay Videos API Route" "${BASE_URL}/api/pixabay/videos" "200"
 
 # 3. Langflow
 run_check "Langflow HTML (Base Href /langflow/)" "${BASE_URL}/langflow/" "200"
@@ -54,7 +58,31 @@ run_check "Langflow Starter Flows API" "${BASE_URL}/api/v1/flows/basic_examples/
 run_check "ComfyUI HTML" "${BASE_URL}/comfyui/" "200"
 run_check "ComfyUI Stats API" "${BASE_URL}/comfyui/system_stats" "200"
 
-# 5. Core Platform
+# 5. AgentPulse (AI Company Workspace)
+run_check "AgentPulse HTML" "${BASE_URL}/agentpulse/" "200"
+run_check "AgentPulse JS Bundle" "${BASE_URL}/agentpulse/assets/index-CbhEdgj6.js" "200"
+run_check "AgentPulse CSS Bundle" "${BASE_URL}/agentpulse/assets/index-E_tHS1z5.css" "200"
+run_check "AgentPulse Health API" "${BASE_URL}/agentpulse/api/health" "200"
+run_check "AgentPulse Devices API" "${BASE_URL}/agentpulse/api/devices" "200"
+run_check "AgentPulse Agents API" "${BASE_URL}/agentpulse/api/agents" "200"
+
+# 6. AI Employees (8 Scheduled Roles Dashboard)
+run_check "AI Employees HTML" "${BASE_URL}/ai-employees/" "200"
+run_check "AI Employees JS Bundle" "${BASE_URL}/ai-employees/assets/index-BVtBLQaE.js" "200"
+run_check "AI Employees CSS Bundle" "${BASE_URL}/ai-employees/assets/index-DZKvlWQZ.css" "200"
+
+# 7. OpenCompany (Agent Operating System)
+run_check "OpenCompany HTML (/opencompany/)" "${BASE_URL}/opencompany/" "200"
+run_check "OpenCompany HTML (/opencompany)" "${BASE_URL}/opencompany" "200"
+run_check "OpenCompany JS Bundle" "${BASE_URL}/opencompany/assets/index-gXrxkYgS.js" "200"
+run_check "OpenCompany CSS Bundle" "${BASE_URL}/opencompany/assets/index-rk9tbv7A.css" "200"
+run_check "OpenCompany Auth Status API" "${BASE_URL}/opencompany/api/auth/status" "200"
+run_check "OpenCompany Health API" "${BASE_URL}/opencompany/health" "200"
+run_check "OpenCompany Font Asset (Geist)" "${BASE_URL}/opencompany/assets/geist-latin-wght-normal-BgDaEnEv.woff2" "200"
+run_check "OpenCompany Vite Icon (/opencompany/vite.svg)" "${BASE_URL}/opencompany/vite.svg" "200"
+run_check "OpenCompany Vite Icon Fallback (/vite.svg)" "${BASE_URL}/vite.svg" "200"
+
+# 8. Core Platform
 run_check "Traefik Router & Core Backend" "${BASE_URL}/" "200"
 
 echo ""
@@ -63,9 +91,10 @@ echo "   SUMMARY: $PASSED_TESTS / $TOTAL_TESTS CHECKS PASSED "
 echo "======================================================="
 
 if [ "$PASSED_TESTS" -eq "$TOTAL_TESTS" ]; then
-  echo "🚀 ALL 4 APPS IN THE SUITE ARE RUNNING AND FULLY HEALTHY!"
+  echo "🚀 ALL 7 APPS IN THE SUITE ARE RUNNING AND FULLY HEALTHY!"
   exit 0
 else
   echo "⚠️ Some checks failed."
   exit 1
 fi
+
