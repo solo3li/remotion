@@ -1,96 +1,205 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { VideoCanvas } from './components/VideoCanvas';
-import { Timeline } from './components/Timeline';
+import { TimelineClip, TimelineTrack, ProjectSettings } from './types';
+import { InteractiveCanvas } from './components/InteractiveCanvas';
+import { NLETimeline } from './components/NLETimeline';
+import { InspectorPanel } from './components/InspectorPanel';
+import { MediaDrawer } from './components/MediaDrawer';
 import { ExportModal } from './components/ExportModal';
 
 export const App: React.FC = () => {
-  // Video Project Variables
-  const [title, setTitle] = useState<string>('عرض ترويجي لمنتجنا الجديد');
-  const [subtitle, setSubtitle] = useState<string>('جودة فائقة • أتمتة بالكود');
-  const [primaryColor, setPrimaryColor] = useState<string>('#10b981');
-  const [accentColor, setAccentColor] = useState<string>('#06b6d4');
+  // Project Global Settings
+  const [projectSettings, setProjectSettings] = useState<ProjectSettings>({
+    title: 'عرض ترويجي لمنتجنا الجديد',
+    duration: 5,
+    fps: 30,
+    width: 1920,
+    height: 1080,
+    bgColor: '#0b0e17',
+  });
 
-  // Timeline / Playback State
-  const [currentFrame, setCurrentFrame] = useState<number>(0);
-  const totalFrames = 120; // 4 seconds at 30 fps
+  // Timeline Tracks
+  const [tracks] = useState<TimelineTrack[]>([
+    { id: 'track-text', name: 'طبقة النصوص (Text)', type: 'text', icon: '💬' },
+    { id: 'track-video', name: 'مسار الفيديو والأشكال (Visual)', type: 'video', icon: '🎬' },
+    { id: 'track-audio', name: 'مسار الصوت (Audio)', type: 'audio', icon: '🎵' },
+  ]);
+
+  // Clips in Timeline
+  const [clips, setClips] = useState<TimelineClip[]>([
+    {
+      id: 'clip-1',
+      trackId: 'track-text',
+      type: 'text',
+      title: 'العنوان الرئيسي',
+      text: 'عرض ترويجي لمنتجنا الجديد',
+      start: 0,
+      duration: 4.5,
+      x: 240,
+      y: 190,
+      width: 480,
+      height: 80,
+      rotation: 0,
+      opacity: 1,
+      fontSize: 38,
+      color: '#ffffff',
+    },
+    {
+      id: 'clip-2',
+      trackId: 'track-text',
+      type: 'text',
+      title: 'النص الفرعي',
+      text: '🔥 أقوى العروض والتخفيضات الحصرية لهذا الموسم',
+      start: 0.8,
+      duration: 3.5,
+      x: 250,
+      y: 290,
+      width: 460,
+      height: 60,
+      rotation: 0,
+      opacity: 1,
+      fontSize: 22,
+      color: '#06b6d4',
+    },
+    {
+      id: 'clip-3',
+      trackId: 'track-video',
+      type: 'shape',
+      title: 'خلفية متدرجة',
+      start: 0,
+      duration: 5,
+      x: 200,
+      y: 150,
+      width: 560,
+      height: 230,
+      rotation: 0,
+      opacity: 0.25,
+      color: '#10b981',
+    },
+    {
+      id: 'clip-4',
+      trackId: 'track-audio',
+      type: 'audio',
+      title: 'موسيقى خلفية حماسية',
+      start: 0,
+      duration: 5,
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      rotation: 0,
+      opacity: 1,
+    },
+  ]);
+
+  // Current Selection & Playback State
+  const [selectedClipId, setSelectedClipId] = useState<string | null>('clip-1');
+  const [currentTime, setCurrentTime] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const animRef = useRef<number | null>(null);
 
-  // Active Sidebar Tab
-  const [activeTab, setActiveTab] = useState<'variables' | 'media' | 'plugins'>('variables');
-
-  // Direct MinIO Upload State
-  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
-
-  // User Auth State from Django Session Cookie
+  // User Auth & Export State
   const [user, setUser] = useState<{ username: string } | null>(null);
-
-  // Export Modal State
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
-  // Fetch Auth status from Django via same-origin cookie
+  // Fetch session cookie
   useEffect(() => {
     fetch('/api/auth/user/')
       .then((r) => r.json())
-      .then((data) => {
-        if (data.authenticated && data.user) {
-          setUser(data.user);
-        }
+      .then((d) => {
+        if (d.authenticated && d.user) setUser(d.user);
       })
-      .catch((e) => console.log('Auth check error:', e));
+      .catch(() => {});
   }, []);
 
-  // Playback timer loop
+  // Playback Loop
   useEffect(() => {
+    let animId: number;
+    let lastTimestamp: number | null = null;
+
+    const loop = (timestamp: number) => {
+      if (lastTimestamp === null) lastTimestamp = timestamp;
+      const deltaSec = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      setCurrentTime((prev) => {
+        const next = prev + deltaSec;
+        if (next >= projectSettings.duration) {
+          return 0; // loop back
+        }
+        return next;
+      });
+
+      animId = requestAnimationFrame(loop);
+    };
+
     if (isPlaying) {
-      const interval = setInterval(() => {
-        setCurrentFrame((prev) => (prev + 1 >= totalFrames ? 0 : prev + 1));
-      }, 1000 / 30);
-      return () => clearInterval(interval);
+      animId = requestAnimationFrame(loop);
     }
-  }, [isPlaying, totalFrames]);
+    return () => cancelAnimationFrame(animId);
+  }, [isPlaying, projectSettings.duration]);
 
-  // Handle direct file upload to MinIO via Presigned URL
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadStatus('جاري طلب رابط رفع مؤقت (Presigned URL) من دجانجو...');
-
-    try {
-      const presignedRes = await fetch('/api/s3/presigned-url/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: file.name,
-          content_type: file.type || 'video/mp4',
-        }),
-      });
-
-      const { presigned_url, file_url } = await presignedRes.json();
-
-      setUploadStatus('جاري الرفع المباشر إلى MinIO S3...');
-
-      // Direct upload to MinIO via PUT
-      await fetch(presigned_url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type || 'video/mp4',
-        },
-        body: file,
-      });
-
-      setUploadStatus('✓ تم الرفع بنجاح ومباشرة إلى MinIO دون المرور بالباك إند!');
-      setUploadedUrl(file_url);
-    } catch (err: any) {
-      console.error('Upload error:', err);
-      setUploadStatus(`❌ فشل الرفع: ${err.message}`);
-    }
+  // Clip CRUD Handlers
+  const handleUpdateClip = (id: string, updates: Partial<TimelineClip>) => {
+    setClips((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
   };
 
-  // Trigger Video Render
+  const handleDeleteClip = (id: string) => {
+    setClips((prev) => prev.filter((c) => c.id !== id));
+    if (selectedClipId === id) setSelectedClipId(null);
+  };
+
+  const handleDuplicateClip = (id: string) => {
+    const clip = clips.find((c) => c.id === id);
+    if (!clip) return;
+    const newId = `clip-${Date.now()}`;
+    const newClip: TimelineClip = {
+      ...clip,
+      id: newId,
+      title: `${clip.title} (نسخة)`,
+      start: Math.min(projectSettings.duration - clip.duration, clip.start + 0.5),
+      x: clip.x + 20,
+      y: clip.y + 20,
+    };
+    setClips((prev) => [...prev, newClip]);
+    setSelectedClipId(newId);
+  };
+
+  const handleSplitClip = (id: string, splitTime: number) => {
+    const clip = clips.find((c) => c.id === id);
+    if (!clip) return;
+    if (splitTime <= clip.start || splitTime >= clip.start + clip.duration) return;
+
+    const firstDuration = Number((splitTime - clip.start).toFixed(2));
+    const secondDuration = Number((clip.duration - firstDuration).toFixed(2));
+
+    const firstClip: TimelineClip = {
+      ...clip,
+      duration: firstDuration,
+    };
+
+    const secondClip: TimelineClip = {
+      ...clip,
+      id: `clip-${Date.now()}`,
+      title: `${clip.title} (جزء 2)`,
+      start: Number(splitTime.toFixed(2)),
+      duration: secondDuration,
+    };
+
+    setClips((prev) => prev.map((c) => (c.id === id ? firstClip : c)).concat(secondClip));
+    setSelectedClipId(secondClip.id);
+  };
+
+  const handleAddClip = (newClipData: Omit<TimelineClip, 'id'>) => {
+    const newId = `clip-${Date.now()}`;
+    const newClip: TimelineClip = {
+      ...newClipData,
+      id: newId,
+    };
+    setClips((prev) => [...prev, newClip]);
+    setSelectedClipId(newId);
+  };
+
+  // Trigger Video Export to Django + Inngest + Revideo Worker
   const handleStartRender = async () => {
     setIsExporting(true);
     try {
@@ -98,13 +207,12 @@ export const App: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title,
-          template: 'revideo_promo',
+          title: projectSettings.title,
+          template: 'revideo_nle_studio',
           variables: {
-            subtitle,
-            primaryColor,
-            accentColor,
-            mediaUrl: uploadedUrl,
+            duration: projectSettings.duration,
+            bgColor: projectSettings.bgColor,
+            clips,
           },
         }),
       });
@@ -114,215 +222,114 @@ export const App: React.FC = () => {
         setActiveVideoId(data.video_id);
       }
     } catch (err) {
-      console.error('Render trigger error:', err);
+      console.error('Export error:', err);
       alert('حدث خطأ أثناء إطلاق مهمة الرندر');
     } finally {
       setIsExporting(false);
     }
   };
 
+  const selectedClip = clips.find((c) => c.id === selectedClipId) || null;
+
   return (
-    <div className="studio-root">
-      {/* Top Navbar */}
-      <header className="studio-header">
-        <div className="header-left">
-          <div className="brand-logo">
-            <span className="logo-icon">🎬</span>
-            <span className="logo-title">Revideo Studio</span>
-            <span className="logo-tag">PRO</span>
+    <div className="nle-studio-root">
+      {/* Top Studio Navbar */}
+      <header className="nle-top-bar">
+        <div className="bar-left">
+          <div className="studio-brand">
+            <span className="brand-badge">NLE PRO</span>
+            <span className="brand-name">Revideo Studio</span>
           </div>
 
-          <div className="project-title-input">
+          <div className="project-title-box">
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="اسم المشروع..."
+              value={projectSettings.title}
+              onChange={(e) => setProjectSettings({ ...projectSettings, title: e.target.value })}
+              className="top-title-input"
             />
           </div>
         </div>
 
-        <div className="header-actions">
+        <div className="bar-right">
           {user ? (
-            <div className="user-badge">
-              <span className="online-indicator"></span>
-              <span>مرحباً، <strong>{user.username}</strong> (جلسة موحدة)</span>
+            <div className="user-session-badge">
+              <span className="dot-live"></span>
+              <span>المستخدم: <strong>{user.username}</strong></span>
             </div>
           ) : (
-            <a href="/" className="guest-badge" title="تسجيل الدخول من دجانجو">
-              جلسة زائر • تسجيل الدخول
-            </a>
+            <a href="/" className="login-link">تسجيل دخول</a>
           )}
 
-          <a href="/" className="btn btn-nav">
-            الصفحة التسويقية 🌐
+          <a href="/" className="btn btn-outline">
+            الموقع التسويقي 🌐
           </a>
 
           <button
-            className="btn btn-export"
+            className="btn btn-primary-render"
             onClick={handleStartRender}
             disabled={isExporting}
           >
-            {isExporting ? 'جاري الإطلاق...' : '⚡ تصدير الفيديو (Render)'}
+            {isExporting ? 'جاري التجهيز...' : '⚡ تصدير الفيديو (Render)'}
           </button>
         </div>
       </header>
 
-      {/* Main Studio Body */}
-      <div className="studio-body">
-        {/* Left Sidebar (Variables, Media, Custom Plugins) */}
-        <aside className="studio-sidebar">
-          <div className="sidebar-tabs">
-            <button
-              className={`tab-btn ${activeTab === 'variables' ? 'active' : ''}`}
-              onClick={() => setActiveTab('variables')}
-            >
-              ⚙️ المتغيرات
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'media' ? 'active' : ''}`}
-              onClick={() => setActiveTab('media')}
-            >
-              ☁️ تخزين MinIO
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'plugins' ? 'active' : ''}`}
-              onClick={() => setActiveTab('plugins')}
-            >
-              🧩 الـ Plugins
-            </button>
+      {/* Main Studio 3-Column Layout */}
+      <div className="nle-center-workspace">
+        {/* Left Column: Media & Asset Presets Drawer */}
+        <MediaDrawer
+          onAddClip={handleAddClip}
+          currentTime={currentTime}
+        />
+
+        {/* Center Column: Interactive Canvas & Timeline */}
+        <div className="nle-middle-column">
+          {/* Canvas Section */}
+          <div className="canvas-viewport-wrapper">
+            <InteractiveCanvas
+              currentTime={currentTime}
+              totalDuration={projectSettings.duration}
+              clips={clips}
+              selectedClipId={selectedClipId}
+              onSelectClip={setSelectedClipId}
+              onUpdateClip={handleUpdateClip}
+              bgColor={projectSettings.bgColor}
+            />
           </div>
 
-          <div className="sidebar-content">
-            {activeTab === 'variables' && (
-              <div className="tab-pane">
-                <div className="input-group">
-                  <label>العنوان الرئيسي (Title):</label>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="styled-input"
-                  />
-                </div>
-
-                <div className="input-group">
-                  <label>النص الفرعي (Subtitle):</label>
-                  <input
-                    type="text"
-                    value={subtitle}
-                    onChange={(e) => setSubtitle(e.target.value)}
-                    className="styled-input"
-                  />
-                </div>
-
-                <div className="color-row">
-                  <div className="input-group">
-                    <label>اللون الأساسي:</label>
-                    <div className="color-picker-wrap">
-                      <input
-                        type="color"
-                        value={primaryColor}
-                        onChange={(e) => setPrimaryColor(e.target.value)}
-                      />
-                      <span>{primaryColor}</span>
-                    </div>
-                  </div>
-
-                  <div className="input-group">
-                    <label>لون الإضاءة:</label>
-                    <div className="color-picker-wrap">
-                      <input
-                        type="color"
-                        value={accentColor}
-                        onChange={(e) => setAccentColor(e.target.value)}
-                      />
-                      <span>{accentColor}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'media' && (
-              <div className="tab-pane">
-                <p className="tab-hint">
-                  رفع الوسائط يتم مباشرة من المتصفح إلى <strong>MinIO S3</strong> عبر رابط Presigned URL دون المرور بسيرفر Django.
-                </p>
-
-                <div className="upload-box">
-                  <input
-                    type="file"
-                    id="media-file-input"
-                    accept="video/*,audio/*,image/*"
-                    onChange={handleFileUpload}
-                    style={{ display: 'none' }}
-                  />
-                  <label htmlFor="media-file-input" className="btn btn-upload">
-                    📂 اختر ملف وسائط للرفع المباشر
-                  </label>
-                </div>
-
-                {uploadStatus && (
-                  <div className="upload-status-box">
-                    <p>{uploadStatus}</p>
-                    {uploadedUrl && (
-                      <div className="uploaded-link-preview">
-                        <code>{uploadedUrl}</code>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'plugins' && (
-              <div className="tab-pane">
-                <p className="tab-hint">
-                  هذه النافذة تمثل <strong>المستوى 2 (Plugin System)</strong>: نافذة مخصصة بهويتك لعرض قوالب أو أدوات شركتك داخل محرر Revideo دون الحاجة لـ Fork كامل.
-                </p>
-
-                <div className="plugin-card">
-                  <h4>قالب الترويجي الذكي</h4>
-                  <p>توليد فيديو 4 ثوانٍ بمؤثرات إجرائية وصوت مدمج.</p>
-                  <button className="btn btn-secondary btn-sm" onClick={() => setTitle('أقوى عروض الموسم!')}>
-                    تطبيق القالب
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </aside>
-
-        {/* Center Canvas Area */}
-        <section className="studio-canvas-area">
-          <div className="canvas-header">
-            <span className="view-mode-badge">معاينة حية • Revideo Canvas Engine</span>
-          </div>
-
-          <VideoCanvas
-            currentFrame={currentFrame}
-            totalFrames={totalFrames}
-            title={title}
-            subtitle={subtitle}
-            primaryColor={primaryColor}
-            accentColor={accentColor}
-            uploadedImageUrl={uploadedUrl || undefined}
-          />
-
-          {/* Bottom Timeline */}
-          <Timeline
-            currentFrame={currentFrame}
-            totalFrames={totalFrames}
+          {/* Bottom Timeline Section */}
+          <NLETimeline
+            currentTime={currentTime}
+            totalDuration={projectSettings.duration}
+            tracks={tracks}
+            clips={clips}
+            selectedClipId={selectedClipId}
             isPlaying={isPlaying}
             onTogglePlay={() => setIsPlaying(!isPlaying)}
-            onSeek={(f) => setCurrentFrame(f)}
-            title={title}
+            onSeek={(t) => setCurrentTime(t)}
+            onSelectClip={setSelectedClipId}
+            onUpdateClip={handleUpdateClip}
+            onDeleteClip={handleDeleteClip}
+            onSplitClip={handleSplitClip}
+            onDuplicateClip={handleDuplicateClip}
           />
-        </section>
+        </div>
+
+        {/* Right Column: Properties Inspector */}
+        <InspectorPanel
+          selectedClip={selectedClip}
+          onUpdateClip={handleUpdateClip}
+          onDeleteClip={handleDeleteClip}
+          onDuplicateClip={handleDuplicateClip}
+          projectSettings={projectSettings}
+          onUpdateProjectSettings={(updates) =>
+            setProjectSettings((prev) => ({ ...prev, ...updates }))
+          }
+        />
       </div>
 
-      {/* Real-time SSE Export Modal */}
+      {/* Server-Sent Events Export Modal */}
       {activeVideoId && (
         <ExportModal
           videoId={activeVideoId}

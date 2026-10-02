@@ -106,15 +106,16 @@ async function main() {
       
       const tmpFile = path.join('/tmp', `${video_id}.mp4`);
       const titleText = (title || 'Revideo Video').replace(/'/g, '');
+      const duration = Math.min(30, Math.max(2, Math.round(variables?.duration || 4)));
 
       // Generate a clean, valid MP4 video with FFmpeg test video + sound
-      const ffmpegCmd = `ffmpeg -y -f lavfi -i testsrc=size=1280x720:rate=30 -f lavfi -i sine=frequency=520:beep_factor=3:sample_rate=44100 -t 4 -vf "drawtext=text='${titleText}':fontcolor=white:fontsize=48:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y=(h-text_h)/2" -c:v libx264 -pix_fmt yuv420p -c:a aac "${tmpFile}"`;
+      const ffmpegCmd = `ffmpeg -y -f lavfi -i testsrc=size=1280x720:rate=30 -f lavfi -i sine=frequency=520:beep_factor=3:sample_rate=44100 -t ${duration} -vf "drawtext=text='${titleText}':fontcolor=white:fontsize=48:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y=(h-text_h)/2" -c:v libx264 -pix_fmt yuv420p -c:a aac "${tmpFile}"`;
 
       try {
         await runCommand(ffmpegCmd);
       } catch (err) {
         console.warn('FFmpeg drawtext failed (maybe font missing), falling back to basic video generation:', err.message);
-        await runCommand(`ffmpeg -y -f lavfi -i testsrc=size=1280x720:rate=30 -f lavfi -i sine=frequency=440:sample_rate=44100 -t 4 -c:v libx264 -pix_fmt yuv420p -c:a aac "${tmpFile}"`);
+        await runCommand(`ffmpeg -y -f lavfi -i testsrc=size=1280x720:rate=30 -f lavfi -i sine=frequency=440:sample_rate=44100 -t ${duration} -c:v libx264 -pix_fmt yuv420p -c:a aac "${tmpFile}"`);
       }
 
       await publishProgress(75, 'ضغط الفيديو وتجهيزه للبث...');
